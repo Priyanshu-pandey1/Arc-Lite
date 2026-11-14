@@ -336,26 +336,6 @@ Arc-Lite/
 
 *The structure above highlights the main project components; it is not an exhaustive listing of every file.*
 
-## 📚 Project Documentation
-
-Detailed technical documentation is available in the repository.
-
-| # | Document |
-|---|---|
-| 01 | [Project Overview](references/project_documentation/01_Project_Overview.md) |
-| 02 | [Complete File Structure](references/project_documentation/02_Complete_File_Structure.md) |
-| 03 | [System Architecture](references/project_documentation/03_System_Architecture.md) |
-| 04 | [Frontend Deep Dive](references/project_documentation/04_Frontend_Deep_Dive.md) |
-| 05 | [Backend Deep Dive](references/project_documentation/05_Backend_Deep_Dive.md) |
-| 06 | [AI Engine Deep Dive](references/project_documentation/06_AI_Engine_Deep_Dive.md) |
-| 07 | [Database Documentation](references/project_documentation/07_Database_Documentation.md) |
-| 08 | [API Reference](references/project_documentation/08_API_Reference.md) |
-| 09 | [User Flows](references/project_documentation/09_User_Flows.md) |
-| 10 | [Testing and QA](references/project_documentation/10_Testing_and_QA.md) |
-| 11 | [Deployment Guide](references/project_documentation/11_Deployment_Guide.md) |
-| 12 | [Interview Questions and Answers](references/project_documentation/12_Interview_Questions_and_Answers.md) |
-| 13 | [Project Presentation Script](references/project_documentation/13_Project_Presentation_Script.md) |
-| 14 | [Technical Glossary](references/project_documentation/14_Technical_Glossary.md) |
 
 ## 🔮 Future Improvements
 
