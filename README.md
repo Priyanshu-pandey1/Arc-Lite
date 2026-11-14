@@ -5,9 +5,6 @@
 <p align="center">
   <a href="https://arc-lite-umber.vercel.app/"><strong>Live Demo</strong></a>
   &nbsp; • &nbsp;
-  <a href="https://arc-lite.onrender.com/api/health"><strong>API Health</strong></a>
-  &nbsp; • &nbsp;
-  <a href="https://github.com/Priyanshu-pandey1/Arc-Lite"><strong>GitHub Repository</strong></a>
 </p>
 
 ---
@@ -34,8 +31,6 @@ The project uses a Flask REST API, a React frontend, a TF-IDF-based retrieval en
 | Component | Link |
 |---|---|
 | Public Application | https://arc-lite-umber.vercel.app/ |
-| Backend API | https://arc-lite.onrender.com |
-| API Health Check | https://arc-lite.onrender.com/api/health |
 | GitHub Repository | https://github.com/Priyanshu-pandey1/Arc-Lite |
 
 **Note:** The FAQ entries currently contain demonstration/sample content. They are not an official ArchintX knowledge base.
