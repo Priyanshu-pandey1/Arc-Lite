@@ -330,22 +330,6 @@ Arc-Lite/
 │   ├── package.json
 │   └── vite.config.js
 │
-├── references/
-│   └── project_documentation/
-│       ├── 01_Project_Overview.md
-│       ├── 02_Complete_File_Structure.md
-│       ├── 03_System_Architecture.md
-│       ├── 04_Frontend_Deep_Dive.md
-│       ├── 05_Backend_Deep_Dive.md
-│       ├── 06_AI_Engine_Deep_Dive.md
-│       ├── 07_Database_Documentation.md
-│       ├── 08_API_Reference.md
-│       ├── 09_User_Flows.md
-│       ├── 10_Testing_and_QA.md
-│       ├── 11_Deployment_Guide.md
-│       ├── 12_Interview_Questions_and_Answers.md
-│       ├── 13_Project_Presentation_Script.md
-│       └── 14_Technical_Glossary.md
 │
 └── README.md
 ```
