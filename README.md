@@ -1,212 +1,300 @@
-# ◈ Arc Lite — AI-Powered FAQ Assistant
+# ◈ Arc Lite | AI-Powered FAQ Assistant
 
-**An intelligent FAQ assistant built to retrieve reliable answers from a knowledge base — and refuse when it doesn't have enough confidence.**
+**Natural-language FAQ retrieval with confidence-based decisions — answer when the system knows, refuse when it doesn't.**
 
 <p align="center">
   <a href="https://arc-lite-umber.vercel.app/">Live Demo</a> ·
-  <a href="https://arc-lite.onrender.com/api/health">API Health</a> ·
-  <a href="https://github.com/Priyanshu-pandey1/Arc-Lite">Source Code</a>
+  <a href="https://github.com/Priyanshu-pandey1/Arc-Lite">GitHub Repository</a>
 </p>
 
 ---
 
 ## Overview
 
-Arc Lite is a full-stack FAQ assistant that helps users find information through natural-language questions.
+Arc Lite is a full-stack FAQ assistant developed during my ArchintX AI Engineer internship. It helps users find information by asking questions in natural language rather than searching through static FAQ pages.
 
-It uses a custom NLP-based retrieval engine to identify relevant FAQs instead of relying on simple keyword matching or generating unsupported answers.
+The system uses a custom NLP-based retrieval engine to match user questions against a PostgreSQL-backed FAQ knowledge base. Instead of generating answers, it retrieves existing FAQ responses and uses a decision engine to determine whether a question can be answered confidently.
 
-Its core principle is simple:
+Its central design principle is:
 
-**Answer when confidence is sufficient. Refuse when it isn't.**
+**Retrieve reliable answers. Clarify uncertainty. Never guess.**
 
-The application provides two interfaces:
+Arc Lite consists of three main application areas:
 
-- **Public Chat:** Visitors can ask questions without creating an account, receive FAQ answers, and submit feedback.
-- **Staff Dashboard:** Authorized staff can manage FAQs, monitor conversations, review analytics, and maintain the knowledge base.
+- **Public Chatbot:** A no-login interface where visitors ask questions, receive responses, and provide feedback.
+- **FAQ Management:** A staff dashboard for creating, updating, deactivating, and managing FAQ entries.
+- **Analytics Dashboard:** A staff interface for monitoring conversations, response verdicts, categories, response times, and feedback.
 
-Built with React, Flask, Scikit-learn, and PostgreSQL, Arc Lite combines an interactive user experience with a confidence-based FAQ retrieval system.
-
-> **Knowledge-base note:** The current FAQ entries are demonstration/sample content, not an official ArchintX knowledge base.
+> **Knowledge-base note:** The deployed demonstration currently uses sample FAQ entries. These are not official ArchintX knowledge-base content.
 
 ## Live Application
 
-| Service | URL |
+| Component | Link |
 |---|---|
-| Public Application | [arc-lite-umber.vercel.app](https://arc-lite-umber.vercel.app/) |
-| Backend API | [arc-lite.onrender.com](https://arc-lite.onrender.com) |
-| API Health Check | [Check API Status](https://arc-lite.onrender.com/api/health) |
-| GitHub Repository | [Priyanshu-pandey1/Arc-Lite](https://github.com/Priyanshu-pandey1/Arc-Lite) |
+| Public Application | [Open Arc Lite](https://arc-lite-umber.vercel.app/) |
+| Backend API | [Render Backend](https://arc-lite.onrender.com) |
+| API Health | [Check API Status](https://arc-lite.onrender.com/api/health) |
+| Source Code | [GitHub Repository](https://github.com/Priyanshu-pandey1/Arc-Lite) |
 
-## Key Features
+## Features
 
 ### Public Chatbot
-- No-login FAQ chat interface.
-- Natural-language question handling.
-- Retrieval of relevant answers from the knowledge base.
-- Confidence-based refusal for unsupported questions.
-- Thumbs-up and thumbs-down feedback.
+- Ask questions using natural language.
+- Receive one of three outcomes: answered, unclear, or refused.
+- View similarity scores and response times.
+- Provide thumbs-up or thumbs-down feedback.
+- Use suggested questions from the welcome screen.
+- Access chat history without creating an account.
 
-### Anonymous Visitor History
-- Separate chat histories for different browser visitors.
-- Persistent conversation history.
-- Rename, pin, and delete conversations.
-- Visitor-level history isolation.
+### Anonymous Conversation History
+- Generates a unique UUID for each browser visitor.
+- Maintains persistent, visitor-specific conversation history.
+- Supports renaming, pinning, and deleting conversations.
+- Preserves conversation history across page refreshes.
+- Enforces visitor ownership at the database-query level.
 
 ### Staff Authentication
 - Dedicated staff login.
-- JWT-based authentication.
+- JWT-based authentication using HS256.
+- Eight-hour token expiry.
 - Password hashing.
-- Protected dashboard routes.
+- Staff account activity is revalidated on protected requests.
 
 ### FAQ Management
-- Create and manage FAQ entries.
+- Create, edit, and manage FAQ entries.
 - Organize FAQs into four categories:
   - Courses
   - Certificates
   - Jobs
   - Account
-- Manage FAQ status and verification information.
+- Filter by category, status, and search query.
+- Support active/inactive and verification-status management.
+- Refresh the in-memory AI matching index after FAQ changes.
 
 ### Analytics Dashboard
-- Monitor chatbot activity.
-- Review conversation statistics.
-- Analyze FAQ categories and performance.
-- View feedback and recent conversations.
+- Conversation and activity statistics.
+- Answered, unclear, and refused verdict breakdowns.
+- Category-level analytics.
+- Response-time analysis.
+- User feedback monitoring.
+- Recent conversation records.
+- 7-day, 30-day, 90-day, and all-time reporting periods.
 
-### Conversation Management
-- Persistent conversation records.
-- Staff access to conversation history.
-- Conversation-level feedback and management.
+## AI Engine & NLP Pipeline
 
-## AI Engine
+The core of Arc Lite is a custom FAQ retrieval engine built using Scikit-learn and traditional Natural Language Processing techniques.
 
-The core of Arc Lite is a custom FAQ retrieval and decision-making engine built using traditional NLP and machine-learning techniques.
+It is designed for **retrieval rather than text generation**. Every answer is retrieved from an existing FAQ record; the engine does not generate new answers using an LLM.
 
-Rather than generating new answers, the engine identifies the most relevant FAQ and retrieves its stored answer.
+### How the Engine Works
 
-### Retrieval Pipeline
+1. **Text Preprocessing:** Normalizes the incoming question, removes unnecessary punctuation, and handles spelling variations using domain-restricted spell correction.
+2. **TF-IDF Vectorization:** Converts FAQ documents and user queries into numerical feature representations.
+3. **Cosine Similarity:** Compares the query against the stored FAQ vectors.
+4. **Phrase Matching:** Uses a separate keyword-phrase matching channel to provide additional matching evidence.
+5. **Out-of-Scope Detection:** Identifies question terms that are absent from the FAQ vocabulary.
+6. **Decision Engine:** Applies ordered rules, confidence thresholds, verification checks, and ambiguity signals.
+7. **Response Builder:** Returns a stored FAQ answer or an appropriate refusal/clarification response.
 
-1. **Text Preprocessing** — Processes and normalizes incoming questions.
-2. **TF-IDF Vectorization** — Converts FAQ questions and user queries into numerical representations.
-3. **Cosine Similarity** — Measures similarity between the incoming query and stored FAQ questions.
-4. **Phrase Matching** — Provides additional matching evidence.
-5. **Decision Engine** — Evaluates confidence, FAQ verification status, question relevance, and other conditions.
-6. **Response Builder** — Returns the stored FAQ answer or an appropriate refusal response.
+### Machine Learning Techniques
 
-### Core Techniques
+| Technique | Implementation | Purpose |
+|---|---|---|
+| TF-IDF | Scikit-learn | Text feature representation |
+| Word N-grams | (1, 2) | Captures individual words and word combinations |
+| Character N-grams | `char_wb` (2, 5) | Improves tolerance to spelling and morphological variations |
+| FeatureUnion | Equal word/character channel weights | Combines complementary text representations |
+| Cosine Similarity | Vector similarity | Measures query-to-FAQ similarity |
+| Phrase Matching | Full content-word coverage | Reduces false-positive phrase matches |
+| Spell Correction | FAQ-vocabulary-restricted correction | Handles typos without freely rewriting unsupported terms |
+| Decision Engine | Seven ordered decision gates | Determines whether to answer, clarify, or refuse |
 
-| Technique | Purpose |
+### Confidence-Based Decision Making
+
+The engine uses empirically tuned thresholds:
+
+| Condition | Outcome |
 |---|---|
-| TF-IDF | Numerical representation of text |
-| Word N-grams (1, 2) | Captures words and word combinations |
-| Character N-grams (2, 5) | Helps match spelling and text variations |
-| Cosine Similarity | Measures query-to-FAQ similarity |
-| Phrase Matching | Provides additional matching evidence |
-| Decision Engine | Determines whether a response is sufficiently reliable |
+| Similarity ≥ 0.50 | Eligible for an answer |
+| Similarity ≥ 0.25 | May enter the unclear/refusal decision band |
+| Similarity < 0.25 | Refused |
 
-### Confidence-Based Decisions
+The final verdict is not determined by similarity alone. Phrase evidence, out-of-scope terms, generic questions, ambiguity signals, and FAQ status are also evaluated.
 
-| Similarity Score | Decision |
-|---|---|
-| ≥ 0.50 | Answer |
-| ≥ 0.25 and < 0.50 | Unclear |
-| < 0.25 | Refuse |
+The decision engine follows seven ordered checks:
 
-Additional checks handle inactive FAQs, unverified entries, generic questions, and out-of-scope queries.
+1. Inactive FAQ → Refuse.
+2. Unverified FAQ in production mode → Refuse.
+3. Generic question → Refuse.
+4. Out-of-scope vocabulary → Refuse.
+5. Ambiguous or unclear question → Clarify.
+6. Full keyword-phrase match with sufficient document support → Answer.
+7. Remaining cases → Apply confidence thresholds and refusal rules.
 
-**Design principle:** Arc Lite retrieves approved stored FAQ answers rather than generating responses using an LLM. Its refusal mechanism is designed to reduce unsupported answers and guessing.
+**Implementation note:** The current Flask application initializes the assistant with `allow_unverified=True` for demonstration data. The engine also supports production-mode verification checks.
+
+### Why Retrieval Instead of an LLM?
+
+Arc Lite prioritizes controlled answers over unrestricted generation.
+
+- Answers come directly from stored FAQ records.
+- Unsupported questions can be refused.
+- Staff can update the knowledge base without retraining a generative model.
+- The matching pipeline is deterministic and runs inside the Flask backend.
+
+The trade-off is that lexical retrieval can reject some valid paraphrases that share little vocabulary with the stored FAQs. This is an area for future improvement.
 
 ## System Architecture
 
+Arc Lite follows a three-tier architecture.
+
 ```mermaid
 flowchart TD
-    A[Public Visitor / Staff] --> B[React + Vite Frontend]
-    B --> C[Flask REST API]
+    A[Public Visitor / Staff] --> B[React 19 + Vite Frontend]
+
+    B --> C[Flask 3 REST API]
 
     C --> D[AI FAQ Engine]
+
     D --> E[Text Preprocessing]
-    E --> F[TF-IDF Vectorization]
+    E --> F[Word + Character TF-IDF]
     F --> G[Cosine Similarity]
-    G --> H[Decision Engine]
+    G --> H[Phrase Matching]
+    H --> I[Decision Engine]
 
-    H --> I{Decision}
-    I -->|Confident Match| J[Stored FAQ Answer]
-    I -->|Unclear / Unsupported| K[Refusal Response]
+    I --> J{Response Decision}
 
-    C <--> L[(Neon PostgreSQL)]
+    J -->|Answered| K[Stored FAQ Answer]
+    J -->|Unclear| L[Clarification Response]
+    J -->|Refused| M[Refusal Response]
 
-    J --> B
+    C <--> N[(Neon PostgreSQL)]
+
     K --> B
+    L --> B
+    M --> B
 ```
 
-### Architecture Components
+### Application Layers
 
-| Component | Responsibility |
+| Layer | Responsibility |
 |---|---|
-| Frontend | Chat interface, staff login, FAQ management, and analytics |
-| Backend | REST APIs, authentication, business logic, and database operations |
-| AI Engine | FAQ retrieval, similarity scoring, and response decisions |
-| Database | FAQs, staff records, conversations, visitor history, and feedback |
+| Frontend | Chat interface, authentication, FAQ management, and analytics |
+| Backend | REST endpoints, validation, authentication, and database operations |
+| AI Engine | Preprocessing, vectorization, matching, and response decisions |
+| Database | Persistent storage of FAQs, staff, and conversations |
+
+The AI engine runs in-process inside Flask. FAQ vectors are fitted at startup and refreshed after FAQ mutations.
 
 ## Technology Stack
 
-| Layer | Technologies |
+| Category | Technologies |
 |---|---|
 | Frontend | React 19, Vite |
-| Backend | Python, Flask 3 |
-| API | REST API |
+| Routing | React Router 7 |
+| Styling | Tailwind CSS 3 |
+| HTTP Client | Axios |
+| Backend | Python 3.12, Flask 3 |
+| API | REST |
 | AI / NLP | Scikit-learn, TF-IDF, Cosine Similarity |
-| Data Processing | NumPy |
+| Text Processing | NumPy, PySpellChecker |
 | Database | PostgreSQL |
 | Database Hosting | Neon |
-| Authentication | JWT, Password Hashing |
-| Frontend Deployment | Vercel |
-| Backend Deployment | Render |
+| Database Driver | Psycopg 3, Psycopg Pool |
+| Authentication | PyJWT, Werkzeug Password Hashing |
+| Production Server | Gunicorn |
+| Frontend Hosting | Vercel |
+| Backend Hosting | Render |
 | Version Control | Git, GitHub |
 
-## Database
+## Database Design
 
-Arc Lite uses PostgreSQL hosted on Neon for persistent data storage.
+Arc Lite uses PostgreSQL hosted on Neon.
 
-The database supports:
+The application uses three primary database tables:
 
-- FAQ knowledge-base records.
-- Staff authentication.
-- Conversation records.
-- Anonymous visitor sessions and chat history.
-- User feedback.
-- Analytics-related information.
+| Table | Purpose |
+|---|---|
+| `faq_entries` | Stores FAQ questions, answers, categories, keywords, and status information |
+| `staff` | Stores staff accounts and password hashes |
+| `conversations` | Stores visitor questions, responses, verdicts, feedback, and conversation metadata |
+
+### Database Engineering
+
+- Parameterized SQL queries.
+- Foreign-key relationship between conversations and FAQ entries.
+- Soft deletion for FAQ and conversation records.
+- Visitor ID indexing for efficient history retrieval.
+- Connection pooling using Psycopg Pool.
+- Explicit transaction handling.
+- Idempotent database migration scripts.
+
+Connection pooling was introduced after performance profiling identified database connection setup as a major source of request latency. The pool maintains 1–4 reusable connections and checks connections when they are retrieved.
+
+## Security & Access Control
+
+Security is implemented at both the application and database-query levels.
+
+- Staff authentication uses signed JWTs with an eight-hour expiry.
+- Passwords are stored as hashes rather than plaintext.
+- Staff activity is checked against the database on protected requests.
+- Visitor IDs are UUID-validated on the backend.
+- Visitor conversation queries enforce ownership using `visitor_id` filters.
+- SQL queries use parameterized inputs.
+- CORS is configured through an explicit origin allowlist.
+- Database credentials and JWT secrets are supplied through environment variables.
+
+## API Overview
+
+The Flask backend exposes **15 REST API endpoints** covering the application's functionality.
+
+| API Area | Functionality |
+|---|---|
+| Health | Backend health check |
+| Authentication | Staff login |
+| Chat | Submit questions and store responses |
+| Feedback | Rate chatbot responses |
+| Public Conversations | Visitor-specific history and management |
+| Staff Conversations | Staff conversation management |
+| FAQ Management | FAQ retrieval and CRUD operations |
+| Analytics | Dashboard metrics and reporting |
+
+API communication uses JSON. Staff requests use an `Authorization: Bearer` token, while public visitor requests use the `X-Visitor-ID` header.
 
 ## Testing & Quality Assurance
 
-Testing was performed across the AI engine, backend APIs, and frontend application.
+Arc Lite was tested across its AI engine, backend APIs, and frontend application.
 
-| Area | Testing Coverage |
+### Testing Coverage
+
+| Area | Coverage |
 |---|---|
-| AI Engine | Matching, confidence decisions, refusal behaviour, and robustness |
-| Backend APIs | FAQ operations, conversations, visitor history, analytics, and authentication |
-| Regression | Existing functionality after code changes |
-| Frontend | Linting and production build |
-| Browser Testing | Manual functional verification |
-| Visitor Isolation | Separate chat histories across visitors |
+| AI Engine | Matching, decision logic, thresholds, and refusal behaviour |
+| AI Evaluation | 26-case quality evaluation and 100-question mixed evaluation |
+| Robustness | Spelling variations, unsupported questions, and edge cases |
+| Backend APIs | FAQ operations, conversations, visitor history, authentication, and analytics |
+| Security | Visitor ownership and cross-visitor isolation |
+| Regression | Verification of existing functionality after changes |
+| Frontend | Oxlint checks and production build |
+| Browser Testing | Manual testing of public and staff workflows |
 
-### Testing Summary
+### QA Results
 
-- Approximately **230 scripted checks** across backend API and AI-engine scripts.
-- Dedicated AI evaluation and mixed-question testing.
-- Frontend lint checks using Oxlint.
-- Production build verification.
-- Manual browser testing of public and staff workflows.
-- Verification of visitor-history isolation and conversation management.
+- Approximately **230 scripted checks** across backend and AI-engine test scripts.
+- Dedicated evaluation for false positives and false negatives.
+- A 55-check visitor-isolation test suite.
+- An 83-assertion analytics test suite.
+- Frontend lint verification.
+- Successful production build verification.
+- Manual browser testing of major application workflows.
 
-**Testing transparency:** The scripted checks primarily use standalone Python scripts rather than a unified pytest suite. Browser testing was manual, not automated using Playwright or Cypress. A CI pipeline is not currently included.
+**Testing transparency:** Most backend checks are standalone Python scripts rather than a unified pytest suite. Browser testing is manual rather than automated with Playwright or Cypress. A GitHub Actions CI pipeline is not currently included.
 
-## Local Installation
+## Local Installation & Setup
 
 ### Prerequisites
 
-- Python 3.10 or later
+- Python 3.12
 - Node.js and npm
 - Git
 - PostgreSQL database
@@ -229,7 +317,7 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 
-Create a `.env` file inside the backend directory:
+Create `backend/.env`:
 
 ```env
 DATABASE_URL=your_postgresql_connection_string
@@ -237,7 +325,13 @@ JWT_SECRET=your_secure_secret_key
 CORS_ORIGINS=http://localhost:5173
 ```
 
-Start the Flask backend using the configured application entry point.
+Run the backend:
+
+```bash
+python app.py
+```
+
+The local Flask API runs on port `5000`.
 
 ### 3. Frontend Setup
 
@@ -249,13 +343,13 @@ cd frontend
 npm install
 ```
 
-Create a `.env` file inside the frontend directory:
+Create `frontend/.env`:
 
 ```env
 VITE_API_BASE_URL=http://localhost:5000/api
 ```
 
-Start the development server:
+Start the frontend:
 
 ```bash
 npm run dev
@@ -263,24 +357,26 @@ npm run dev
 
 Vite will display the local frontend URL in the terminal.
 
-**Security:** Use your own database credentials and a secure JWT secret. Never commit `.env` files, passwords, or secret keys to GitHub.
-
-For detailed setup and deployment instructions, refer to the [Deployment Guide](references/project_documentation/11_Deployment_Guide.md).
+**Security:** Replace the example values with your own database credentials and a secure JWT secret. Never commit `.env` files, passwords, or secret keys to GitHub.
 
 ## Deployment
 
-Arc Lite is deployed using three services:
+Arc Lite is deployed using Vercel, Render, and Neon.
 
-| Component | Platform |
-|---|---|
-| Frontend | Vercel |
-| Backend | Render |
-| Database | Neon PostgreSQL |
+| Component | Platform | Configuration |
+|---|---|---|
+| Frontend | Vercel | React/Vite production build |
+| Backend | Render | Flask application with Gunicorn |
+| Database | Neon | PostgreSQL with connection pooling |
 
-- React frontend deployed on Vercel.
-- Flask backend hosted on Render using Gunicorn.
-- Neon PostgreSQL provides persistent database storage.
-- Environment variables configure database access, authentication, and frontend-backend communication.
+### Production Configuration
+
+- Vercel builds and serves the React application.
+- Render runs the Flask API using Gunicorn.
+- Neon provides persistent PostgreSQL storage.
+- `VITE_API_BASE_URL` configures frontend-to-backend communication.
+- `DATABASE_URL`, `JWT_SECRET`, and `CORS_ORIGINS` configure the backend.
+- CORS restricts browser access to configured frontend origins.
 
 ## Project Structure
 
@@ -295,9 +391,11 @@ Arc-Lite/
 │   │   ├── preprocessing.py
 │   │   ├── response_builder.py
 │   │   └── vectorizer.py
+│   │
 │   ├── data/
 │   ├── tests/
 │   ├── app.py
+│   ├── db.py
 │   └── requirements.txt
 │
 ├── frontend/
@@ -312,55 +410,22 @@ Arc-Lite/
 │
 ├── references/
 │   └── project_documentation/
-│       ├── 01_Project_Overview.md
-│       ├── 02_Complete_File_Structure.md
-│       ├── 03_System_Architecture.md
-│       ├── 04_Frontend_Deep_Dive.md
-│       ├── 05_Backend_Deep_Dive.md
-│       ├── 06_AI_Engine_Deep_Dive.md
-│       ├── 07_Database_Documentation.md
-│       ├── 08_API_Reference.md
-│       ├── 09_User_Flows.md
-│       ├── 10_Testing_and_QA.md
-│       ├── 11_Deployment_Guide.md
-│       ├── 12_Interview_Questions_and_Answers.md
-│       ├── 13_Project_Presentation_Script.md
-│       └── 14_Technical_Glossary.md
 │
 └── README.md
 ```
 
-*This is a simplified representation of the main project structure.*
-
-## Technical Documentation
-
-The repository includes 14 detailed documents covering the implementation and architecture of Arc Lite.
-
-| # | Documentation |
-|---|---|
-| 01 | [Project Overview](references/project_documentation/01_Project_Overview.md) |
-| 02 | [Complete File Structure](references/project_documentation/02_Complete_File_Structure.md) |
-| 03 | [System Architecture](references/project_documentation/03_System_Architecture.md) |
-| 04 | [Frontend Deep Dive](references/project_documentation/04_Frontend_Deep_Dive.md) |
-| 05 | [Backend Deep Dive](references/project_documentation/05_Backend_Deep_Dive.md) |
-| 06 | [AI Engine Deep Dive](references/project_documentation/06_AI_Engine_Deep_Dive.md) |
-| 07 | [Database Documentation](references/project_documentation/07_Database_Documentation.md) |
-| 08 | [API Reference](references/project_documentation/08_API_Reference.md) |
-| 09 | [User Flows](references/project_documentation/09_User_Flows.md) |
-| 10 | [Testing & QA](references/project_documentation/10_Testing_and_QA.md) |
-| 11 | [Deployment Guide](references/project_documentation/11_Deployment_Guide.md) |
-| 12 | [Interview Questions & Answers](references/project_documentation/12_Interview_Questions_and_Answers.md) |
-| 13 | [Project Presentation Script](references/project_documentation/13_Project_Presentation_Script.md) |
-| 14 | [Technical Glossary](references/project_documentation/14_Technical_Glossary.md) |
+*Simplified representation of the main project structure.*
 
 ## Future Improvements
 
+- Semantic retrieval to improve paraphrase handling.
+- Expanded and officially verified FAQ knowledge base.
 - Automated browser-based testing.
 - Continuous integration and deployment workflows.
-- Improved FAQ ranking and retrieval evaluation.
+- Improved retrieval evaluation and threshold calibration.
 - Multilingual FAQ support.
-- Advanced semantic retrieval techniques.
-- Expanded analytics and reporting capabilities.
+- Further analytics and reporting capabilities.
+- Multi-worker-safe AI index refresh strategy.
 
 ## Author
 
@@ -376,5 +441,5 @@ Specialization: Artificial Intelligence and Machine Learning
 
 <p align="center">
   <strong>◈ Arc Lite</strong><br/>
-  <sub>Answer confidently. Never guess.</sub>
+  <sub>Reliable answers. Responsible decisions. No guessing.</sub>
 </p>
