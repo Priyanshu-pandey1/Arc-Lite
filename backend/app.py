@@ -1,0 +1,1417 @@
+import os
+import re
+import time
+from datetime import datetime, timedelta, timezone
+from functools import wraps
+
+import jwt
+from dotenv import load_dotenv
+from flask import Flask, g, request, jsonify
+from flask_cors import CORS
+from werkzeug.security import check_password_hash
+
+import db
+from ai_engine.engine import FAQAssistant
+
+
+# --------------------------------------------------
+# 1. LOAD ENVIRONMENT VARIABLES
+# --------------------------------------------------
+
+BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(BACKEND_DIR, ".env"))
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+JWT_SECRET = os.getenv("JWT_SECRET")
+
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL not found in backend/.env")
+
+if not JWT_SECRET:
+    raise ValueError("JWT_SECRET not found in backend/.env")
+
+
+# --------------------------------------------------
+# 2. CREATE FLASK APPLICATION
+# --------------------------------------------------
+
+app = Flask(__name__)
+
+CORS(
+    app,
+    # Production sets CORS_ORIGINS to the deployed frontend origin(s),
+    # comma-separated. The localhost default is dev-only.
+    origins=[
+        origin.strip()
+        for origin in os.getenv(
+            "CORS_ORIGINS", "http://localhost:5173"
+        ).split(",")
+        if origin.strip()
+    ],
+    allow_headers=["Content-Type", "Authorization", "X-Visitor-ID"],
+    methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+)
+
+VALID_CATEGORIES = {
+    "Courses",
+    "Certificates",
+    "Jobs",
+    "Account",
+}
+
+
+# --------------------------------------------------
+# 3. INITIALIZE AI ENGINE
+# --------------------------------------------------
+
+# Development only: sample FAQs are currently unverified.
+# Before production, change allow_unverified to False and only
+# enable FAQs after their answers have been verified.
+assistant = FAQAssistant(
+    allow_unverified=True,
+    use_database=True,
+)
+
+
+def refresh_assistant():
+    """Reload active FAQs from Neon after FAQ management changes."""
+    global assistant
+    assistant = FAQAssistant(
+        allow_unverified=True,
+        use_database=True,
+    )
+
+
+# --------------------------------------------------
+# 4. STAFF JWT AUTHENTICATION
+# --------------------------------------------------
+
+def staff_required(view_function):
+    @wraps(view_function)
+    def decorated_function(*args, **kwargs):
+        auth_header = request.headers.get("Authorization", "")
+        scheme, _, token = auth_header.partition(" ")
+
+        if scheme.lower() != "bearer" or not token:
+            return jsonify({
+                "error": "Staff authentication required."
+            }), 401
+
+        try:
+            payload = jwt.decode(
+                token,
+                JWT_SECRET,
+                algorithms=["HS256"],
+            )
+
+            staff_id = payload.get("staff_id")
+
+            if not staff_id:
+                return jsonify({
+                    "error": "Invalid authentication token."
+                }), 401
+
+            # Confirm that this staff account still exists and is active.
+            # The same pooled connection is then handed to the view via
+            # flask.g, so one request performs one checkout and one
+            # round trip per SQL statement instead of two fresh connects.
+            with db.get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        SELECT id
+                        FROM staff
+                        WHERE id = %s
+                          AND is_active = TRUE;
+                        """,
+                        (staff_id,),
+                    )
+                    staff = cur.fetchone()
+
+                if not staff:
+                    return jsonify({
+                        "error": "Staff account is inactive or unavailable."
+                    }), 401
+
+                # View queries (GET/POST/PUT/DELETE /api/faqs) reuse this
+                # connection; leaving this block commits writes and
+                # returns the connection to the pool.
+                g.db_conn = conn
+                return view_function(*args, **kwargs)
+
+        except jwt.ExpiredSignatureError:
+            return jsonify({
+                "error": "Session expired. Please log in again."
+            }), 401
+
+        except jwt.InvalidTokenError:
+            return jsonify({
+                "error": "Invalid authentication token."
+            }), 401
+
+        except Exception:
+            app.logger.exception("Staff authentication failed")
+            return jsonify({
+                "error": "Unable to verify staff authentication."
+            }), 500
+
+    return decorated_function
+
+
+# --------------------------------------------------
+# 4b. ANONYMOUS VISITOR ID (public chat history)
+# --------------------------------------------------
+
+# Random UUIDv4 generated by the browser on its first public chatbot
+# visit and stored in localStorage (frontend: services/visitorId.js).
+# Format validation means an arbitrary header value never reaches SQL,
+# and because the id is 122 random bits with no lookup or enumeration
+# endpoint, a visitor cannot reach another visitor's history by
+# crafting requests — only rows whose visitor_id matches the caller's
+# validated id are ever returned or modified.
+VISITOR_ID_PATTERN = re.compile(
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+)
+
+
+def read_visitor_id(required=True):
+    """
+    Read and validate the X-Visitor-ID header.
+
+    Returns (visitor_id, error_response). A well-formed id comes back as
+    the first element. A missing id is allowed only when required=False
+    (POST /api/chat still logs the row with visitor_id = NULL, so chat
+    itself never breaks for clients without the header). A malformed id
+    is always a 400 — the frontend regenerates invalid stored ids, so
+    this only ever fires on hand-crafted requests.
+    """
+    visitor_id = request.headers.get("X-Visitor-ID", "").strip().lower()
+
+    if not visitor_id:
+        if required:
+            return None, (jsonify({
+                "error": "A valid Visitor ID is required."
+            }), 400)
+        return None, None
+
+    if len(visitor_id) > 64 or not VISITOR_ID_PATTERN.match(visitor_id):
+        return None, (jsonify({
+            "error": "Invalid Visitor ID."
+        }), 400)
+
+    return visitor_id, None
+
+
+def holds_staff_token():
+    """
+    True when the request carries a structurally valid staff JWT.
+
+    Used only to keep the pre-existing open behavior of the public
+    feedback endpoint (signed-in staff may rate any row). It grants no
+    access by itself — staff_required still performs the real
+    authentication on every staff route.
+    """
+    scheme, _, token = request.headers.get("Authorization", "").partition(" ")
+
+    if scheme.lower() != "bearer" or not token:
+        return False
+
+    try:
+        jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        return True
+    except jwt.InvalidTokenError:
+        return False
+
+
+# --------------------------------------------------
+# 5. HEALTH CHECK ENDPOINT
+# --------------------------------------------------
+
+@app.route("/api/health", methods=["GET"])
+def health():
+    return jsonify({
+        "status": "success",
+        "message": "Arc Lite backend is running.",
+        "faq_source": "Neon PostgreSQL",
+        "total_faqs": len(assistant.faqs),
+    }), 200
+
+
+# --------------------------------------------------
+# 6. STAFF LOGIN ENDPOINT
+# --------------------------------------------------
+
+@app.route("/api/auth/login", methods=["POST"])
+def staff_login():
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+        return jsonify({
+            "error": "A valid JSON request is required."
+        }), 400
+
+    email = data.get("email")
+    password = data.get("password")
+
+    if (
+        not isinstance(email, str)
+        or not isinstance(password, str)
+        or not email.strip()
+        or not password
+    ):
+        return jsonify({
+            "error": "Email and password are required."
+        }), 400
+
+    try:
+        with db.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT id, email, password_hash
+                    FROM staff
+                    WHERE email = %s
+                      AND is_active = TRUE;
+                    """,
+                    (email.strip(),),
+                )
+                staff = cur.fetchone()
+
+        if not staff or not check_password_hash(staff[2], password):
+            return jsonify({
+                "error": "Invalid email or password."
+            }), 401
+
+        # Keep staff_id numeric because the database column is BIGINT.
+        token = jwt.encode(
+            {
+                "staff_id": staff[0],
+                "email": staff[1],
+                "exp": datetime.now(timezone.utc) + timedelta(hours=8),
+            },
+            JWT_SECRET,
+            algorithm="HS256",
+        )
+
+        return jsonify({
+            "message": "Login successful.",
+            "token": token,
+            "staff": {
+                "id": staff[0],
+                "email": staff[1],
+            },
+        }), 200
+
+    except Exception:
+        app.logger.exception("Staff login failed")
+        return jsonify({
+            "error": "Unable to process login."
+        }), 500
+
+
+# --------------------------------------------------
+# 7. PUBLIC CHAT ENDPOINT
+# --------------------------------------------------
+
+@app.route("/api/chat", methods=["POST"])
+def chat():
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+        return jsonify({
+            "error": "A valid JSON request is required."
+        }), 400
+
+    question = data.get("question")
+
+    if not isinstance(question, str) or not question.strip():
+        return jsonify({
+            "error": "Please provide a valid question."
+        }), 400
+
+    # Anonymous visitor identity (optional): associates the logged row
+    # with the browser that asked, so that visitor can reload it later
+    # through GET /api/public/conversations. Missing header -> NULL
+    # (chat still works); malformed header -> 400.
+    visitor_id, visitor_error = read_visitor_id(required=False)
+
+    if visitor_error:
+        return visitor_error
+
+    try:
+        start_time = time.perf_counter()
+        result = assistant.answer_question(question.strip())
+        response_time_ms = (time.perf_counter() - start_time) * 1000
+
+        verdict = result["status"]
+        answer = result["answer"]
+        category = result.get("category")
+
+        if category not in VALID_CATEGORIES:
+            category = None
+
+        faq_id = result.get("faq_id")
+
+        # Save every public chat request in Neon.
+        with db.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO conversations (
+                        question,
+                        answer,
+                        category,
+                        verdict,
+                        response_time_ms,
+                        faq_entry_id,
+                        visitor_id
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    RETURNING id;
+                    """,
+                    (
+                        question.strip(),
+                        answer,
+                        category,
+                        verdict,
+                        round(response_time_ms, 2),
+                        faq_id,
+                        visitor_id,
+                    ),
+                )
+                conversation_id = cur.fetchone()[0]
+
+        return jsonify({
+            "conversation_id": conversation_id,
+            "status": verdict,
+            "answer": answer,
+            "category": category,
+            "similarity_score": result["similarity_score"],
+            "faq_id": faq_id,
+            "response_time_ms": round(response_time_ms, 2),
+        }), 200
+
+    except Exception:
+        app.logger.exception("Error while processing chat request")
+        return jsonify({
+            "error": "Something went wrong while processing your question."
+        }), 500
+
+
+# --------------------------------------------------
+# 8. PUBLIC CHAT FEEDBACK ENDPOINT
+# --------------------------------------------------
+
+@app.route("/api/chat/<int:conversation_id>/rate", methods=["POST"])
+def rate_conversation(conversation_id):
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+        return jsonify({
+            "error": "A valid JSON request is required."
+        }), 400
+
+    rating = data.get("rating")
+
+    if rating not in ("up", "down"):
+        return jsonify({
+            "error": "Rating must be 'up' or 'down'."
+        }), 400
+
+    # Ownership for anonymous callers: a signed-out visitor may only
+    # rate rows that belong to their own visitor id. Signed-in staff
+    # (valid JWT) and rows created before visitor sessions existed
+    # (visitor_id IS NULL) keep the original open behavior, so every
+    # existing feedback flow continues to work unchanged.
+    visitor_id, visitor_error = read_visitor_id(required=False)
+
+    if visitor_error:
+        return visitor_error
+
+    try:
+        with db.get_connection() as conn:
+            with conn.cursor() as cur:
+                if not holds_staff_token():
+                    cur.execute(
+                        "SELECT visitor_id FROM conversations WHERE id = %s;",
+                        (conversation_id,),
+                    )
+                    owner = cur.fetchone()
+
+                    # Unknown id and someone else's id both read as
+                    # "not found" so rows can never be probed.
+                    if owner is None or (
+                        owner[0] is not None and owner[0] != visitor_id
+                    ):
+                        return jsonify({
+                            "error": "Conversation not found."
+                        }), 404
+
+                cur.execute(
+                    """
+                    UPDATE conversations
+                    SET rating = %s
+                    WHERE id = %s
+                    RETURNING id, rating;
+                    """,
+                    (rating, conversation_id),
+                )
+                updated = cur.fetchone()
+
+                if updated is None:
+                    return jsonify({
+                        "error": "Conversation not found."
+                    }), 404
+
+        return jsonify({
+            "message": "Feedback saved successfully.",
+            "conversation_id": updated[0],
+            "rating": updated[1],
+        }), 200
+
+    except Exception:
+        app.logger.exception("Error while saving feedback")
+        return jsonify({
+            "error": "Something went wrong while saving feedback."
+        }), 500
+
+
+# --------------------------------------------------
+# 8b. STAFF CONVERSATION HISTORY
+# --------------------------------------------------
+
+@app.route("/api/conversations", methods=["GET"])
+@staff_required
+def get_conversations():
+    """Staff-only chat history: the real rows logged by POST /api/chat."""
+    try:
+        # Public chatbot logs anonymous questions without user accounts,
+        # so only conversation fields are returned — nothing else exists.
+        # Soft-deleted rows (is_hidden = TRUE) stay in the database for
+        # Analytics but never come back into the sidebar.
+        with g.db_conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, question, answer, category,
+                       verdict, rating, response_time_ms, created_at,
+                       title, is_pinned
+                FROM conversations
+                WHERE is_hidden = FALSE
+                ORDER BY created_at DESC, id DESC
+                LIMIT 200;
+                """
+            )
+            rows = cur.fetchall()
+
+        return jsonify([format_conversation(row) for row in rows]), 200
+
+    except Exception:
+        app.logger.exception("Failed to retrieve conversations")
+        return jsonify({
+            "error": "Unable to retrieve conversation history."
+        }), 500
+
+
+@app.route("/api/conversations/<int:conversation_id>", methods=["PATCH"])
+@staff_required
+def update_conversation(conversation_id):
+    """Rename and/or pin a conversation (staff-only, non-destructive)."""
+    body = request.get_json(silent=True) or {}
+
+    new_title = body.get("title")
+    new_pinned = body.get("is_pinned")
+
+    # Validate types first so 400 responses say exactly what's wrong.
+    if new_title is not None and not isinstance(new_title, str):
+        return jsonify({"error": "title must be a string."}), 400
+
+    if new_pinned is not None and not isinstance(new_pinned, bool):
+        return jsonify({"error": "is_pinned must be a boolean."}), 400
+
+    if new_title is not None:
+        new_title = new_title.strip()
+        if not 1 <= len(new_title) <= 120:
+            return jsonify({
+                "error": "title must be between 1 and 120 characters."
+            }), 400
+
+    if new_title is None and new_pinned is None:
+        return jsonify({
+            "error": "Provide title and/or is_pinned to update."
+        }), 400
+
+    try:
+        with g.db_conn.cursor() as cur:
+            # Only existing, non-hidden conversations can be modified —
+            # hidden ones are "deleted" from the user's perspective.
+            cur.execute(
+                "SELECT id FROM conversations WHERE id = %s AND is_hidden = FALSE;",
+                (conversation_id,),
+            )
+            if cur.fetchone() is None:
+                return jsonify({"error": "Conversation not found."}), 404
+
+            if new_title is not None and new_pinned is not None:
+                cur.execute(
+                    """
+                    UPDATE conversations
+                    SET title = %s, is_pinned = %s
+                    WHERE id = %s;
+                    """,
+                    (new_title, new_pinned, conversation_id),
+                )
+            elif new_title is not None:
+                cur.execute(
+                    "UPDATE conversations SET title = %s WHERE id = %s;",
+                    (new_title, conversation_id),
+                )
+            else:
+                cur.execute(
+                    "UPDATE conversations SET is_pinned = %s WHERE id = %s;",
+                    (new_pinned, conversation_id),
+                )
+
+        g.db_conn.commit()
+
+        return jsonify({
+            "id": str(conversation_id),
+            "title": new_title,
+            "is_pinned": new_pinned,
+            "message": "Conversation updated.",
+        }), 200
+
+    except Exception:
+        app.logger.exception("Failed to update conversation")
+        return jsonify({
+            "error": "Unable to update the conversation."
+        }), 500
+
+
+@app.route("/api/conversations/<int:conversation_id>", methods=["DELETE"])
+@staff_required
+def hide_conversation(conversation_id):
+    """
+    Soft-delete a conversation: flag it hidden instead of deleting the row.
+    History rows feed Analytics (totals, categories, ratings), so the
+    physical record must survive.
+    """
+    try:
+        with g.db_conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE conversations
+                SET is_hidden = TRUE
+                WHERE id = %s AND is_hidden = FALSE;
+                """,
+                (conversation_id,),
+            )
+            hidden = cur.rowcount
+
+        if hidden == 0:
+            # Unknown id, or already hidden — both are "not found" to the UI.
+            return jsonify({"error": "Conversation not found."}), 404
+
+        g.db_conn.commit()
+
+        return jsonify({
+            "id": str(conversation_id),
+            "is_hidden": True,
+            "message": "Conversation removed from history.",
+        }), 200
+
+    except Exception:
+        app.logger.exception("Failed to hide conversation")
+        return jsonify({
+            "error": "Unable to remove the conversation."
+        }), 500
+
+
+# --------------------------------------------------
+# 8c. PUBLIC (ANONYMOUS) CONVERSATION HISTORY
+# --------------------------------------------------
+#
+# Visitor-scoped twins of the staff endpoints above: no JWT, no staff
+# session — ownership comes exclusively from the validated X-Visitor-ID
+# header matching the row's visitor_id. Every read and write filters on
+# both id and visitor_id, so a crafted request for another visitor's
+# row is indistinguishable from a request for a row that does not exist.
+
+
+@app.route("/api/public/conversations", methods=["GET"])
+def get_public_conversations():
+    """Newest-first history for exactly one anonymous visitor."""
+    visitor_id, error = read_visitor_id(required=True)
+
+    if error:
+        return error
+
+    try:
+        with db.get_connection() as conn:
+            with conn.cursor() as cur:
+                # Same fields, order and limit as the staff sidebar so
+                # the public UI reuses format_conversation unchanged.
+                # Soft-deleted rows stay hidden (kept for Analytics).
+                # visitor_id is deliberately NOT selected: callers
+                # already know their own id and receive nothing new.
+                cur.execute(
+                    """
+                    SELECT id, question, answer, category,
+                           verdict, rating, response_time_ms, created_at,
+                           title, is_pinned
+                    FROM conversations
+                    WHERE visitor_id = %s
+                      AND is_hidden = FALSE
+                    ORDER BY created_at DESC, id DESC
+                    LIMIT 200;
+                    """,
+                    (visitor_id,),
+                )
+                rows = cur.fetchall()
+
+        return jsonify([format_conversation(row) for row in rows]), 200
+
+    except Exception:
+        app.logger.exception("Failed to retrieve public conversations")
+        return jsonify({
+            "error": "Unable to retrieve conversation history."
+        }), 500
+
+
+@app.route(
+    "/api/public/conversations/<int:conversation_id>", methods=["PATCH"]
+)
+def update_public_conversation(conversation_id):
+    """Rename and/or pin — only when the row belongs to this visitor."""
+    visitor_id, error = read_visitor_id(required=True)
+
+    if error:
+        return error
+
+    body = request.get_json(silent=True) or {}
+
+    new_title = body.get("title")
+    new_pinned = body.get("is_pinned")
+
+    # Same validation as the staff PATCH so both paths accept and
+    # reject exactly the same payloads.
+    if new_title is not None and not isinstance(new_title, str):
+        return jsonify({"error": "title must be a string."}), 400
+
+    if new_pinned is not None and not isinstance(new_pinned, bool):
+        return jsonify({"error": "is_pinned must be a boolean."}), 400
+
+    if new_title is not None:
+        new_title = new_title.strip()
+        if not 1 <= len(new_title) <= 120:
+            return jsonify({
+                "error": "title must be between 1 and 120 characters."
+            }), 400
+
+    if new_title is None and new_pinned is None:
+        return jsonify({
+            "error": "Provide title and/or is_pinned to update."
+        }), 400
+
+    try:
+        with db.get_connection() as conn:
+            with conn.cursor() as cur:
+                # Ownership lives in the WHERE clause itself: another
+                # visitor's id (or a soft-deleted row) matches nothing,
+                # so foreign rows behave exactly like missing ones.
+                if new_title is not None and new_pinned is not None:
+                    cur.execute(
+                        """
+                        UPDATE conversations
+                        SET title = %s, is_pinned = %s
+                        WHERE id = %s
+                          AND visitor_id = %s
+                          AND is_hidden = FALSE;
+                        """,
+                        (new_title, new_pinned,
+                         conversation_id, visitor_id),
+                    )
+                elif new_title is not None:
+                    cur.execute(
+                        """
+                        UPDATE conversations
+                        SET title = %s
+                        WHERE id = %s
+                          AND visitor_id = %s
+                          AND is_hidden = FALSE;
+                        """,
+                        (new_title, conversation_id, visitor_id),
+                    )
+                else:
+                    cur.execute(
+                        """
+                        UPDATE conversations
+                        SET is_pinned = %s
+                        WHERE id = %s
+                          AND visitor_id = %s
+                          AND is_hidden = FALSE;
+                        """,
+                        (new_pinned, conversation_id, visitor_id),
+                    )
+
+                if cur.rowcount == 0:
+                    return jsonify({
+                        "error": "Conversation not found."
+                    }), 404
+
+            conn.commit()
+
+        return jsonify({
+            "id": str(conversation_id),
+            "title": new_title,
+            "is_pinned": new_pinned,
+            "message": "Conversation updated.",
+        }), 200
+
+    except Exception:
+        app.logger.exception("Failed to update public conversation")
+        return jsonify({
+            "error": "Unable to update the conversation."
+        }), 500
+
+
+@app.route(
+    "/api/public/conversations/<int:conversation_id>", methods=["DELETE"]
+)
+def hide_public_conversation(conversation_id):
+    """
+    Soft-delete one visitor's own conversation: flag it hidden instead
+    of deleting the row, exactly like the staff delete. History rows
+    feed Analytics, so the physical record must survive.
+    """
+    visitor_id, error = read_visitor_id(required=True)
+
+    if error:
+        return error
+
+    try:
+        with db.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    UPDATE conversations
+                    SET is_hidden = TRUE
+                    WHERE id = %s
+                      AND visitor_id = %s
+                      AND is_hidden = FALSE;
+                    """,
+                    (conversation_id, visitor_id),
+                )
+                hidden = cur.rowcount
+
+            if hidden == 0:
+                # Unknown id, someone else's id, or already hidden —
+                # all three look identical to the caller.
+                return jsonify({"error": "Conversation not found."}), 404
+
+            conn.commit()
+
+        return jsonify({
+            "id": str(conversation_id),
+            "is_hidden": True,
+            "message": "Conversation removed from history.",
+        }), 200
+
+    except Exception:
+        app.logger.exception("Failed to hide public conversation")
+        return jsonify({
+            "error": "Unable to remove the conversation."
+        }), 500
+
+
+# --------------------------------------------------
+# 8d. STAFF ANALYTICS (GET /api/analytics)
+# --------------------------------------------------
+#
+# Staff-only dashboard metrics. Two visibility rules deliberately
+# coexist in this codebase:
+#   * public visitor history -> WHERE visitor_id = ... AND is_hidden = FALSE
+#   * staff analytics        -> no is_hidden predicate anywhere
+# When a visitor removes a row from their personal history only
+# is_hidden flips to TRUE; the row keeps feeding every statistic
+# below (totals, verdicts, categories, response times, ratings and
+# the activity chart).
+
+# Whitelisted period values -> window length in days (None = all time).
+# The raw query parameter never reaches SQL — only this mapping does,
+# and the days value is passed as a bound integer parameter.
+ANALYTICS_PERIOD_DAYS = {"7d": 7, "30d": 30, "90d": 90, "all": None}
+
+
+def percent(part, whole):
+    """Zero-safe percentage rounded to one decimal (0 when whole == 0)."""
+    if not whole:
+        return 0.0
+    return round(part * 100.0 / whole, 1)
+
+
+def build_overall(counts):
+    """One aggregate row -> the overall statistics payload."""
+    total, answered, unclear, refused, positive, negative = counts
+    return {
+        "total": total,
+        "answered": answered,
+        "unclear": unclear,
+        "refused": refused,
+        "answered_percent": percent(answered, total),
+        "unclear_percent": percent(unclear, total),
+        "refused_percent": percent(refused, total),
+        "positive_ratings": positive,
+        "negative_ratings": negative,
+    }
+
+
+def build_category(row):
+    """One GROUP BY category row -> totals, verdict split, avg time."""
+    name, total, answered, unclear, refused, avg_ms = row
+    return {
+        "category": name,
+        "total": total,
+        "answered": answered,
+        "unclear": unclear,
+        "refused": refused,
+        "answered_percent": percent(answered, total),
+        "unclear_percent": percent(unclear, total),
+        "refused_percent": percent(refused, total),
+        # AVG() skips NULLs and returns NULL when every value is NULL,
+        # so an unknown average stays null instead of becoming 0.
+        "average_response_time_ms": (
+            round(float(avg_ms), 1) if avg_ms is not None else None
+        ),
+    }
+
+
+def build_activity_buckets(daily_rows, start_date, end_date):
+    """
+    Fold real daily counts into ~7 chart buckets, zero-filling days
+    with no conversations so the x-axis keeps a continuous timeline.
+
+    daily_rows: [{"day": date, "total": n, "answered": n,
+                  "positive": n, "negative": n}, ...] — only days
+    that actually have rows. No sample values are ever generated;
+    empty days are literal zeros.
+    """
+    keys = ("total", "answered", "positive", "negative")
+    series_keys = ("total", "answered", "unanswered", "positive", "negative")
+    empty = {"labels": [], **{key: [] for key in series_keys}}
+
+    if start_date is None or end_date is None or end_date < start_date:
+        return empty
+
+    by_day = {row["day"]: row for row in daily_rows}
+    day_count = (end_date - start_date).days + 1
+    bucket_size = max(1, -(-day_count // 7))  # ceil(days / 7)
+
+    buckets = []
+    cursor = start_date
+    while cursor <= end_date:
+        bucket_end = min(
+            cursor + timedelta(days=bucket_size - 1), end_date
+        )
+        totals = {key: 0 for key in keys}
+        day = cursor
+        while day <= bucket_end:
+            row = by_day.get(day)
+            if row:
+                for key in keys:
+                    totals[key] += row[key] or 0
+            day += timedelta(days=1)
+        buckets.append({
+            # "Nov 7" style label (mock design format, no zero pad).
+            "label": "{0} {1}".format(cursor.strftime("%b"), cursor.day),
+            "total": totals["total"],
+            "answered": totals["answered"],
+            "unanswered": totals["total"] - totals["answered"],
+            "positive": totals["positive"],
+            "negative": totals["negative"],
+        })
+        cursor = bucket_end + timedelta(days=1)
+
+    return {
+        "labels": [bucket["label"] for bucket in buckets],
+        **{
+            key: [bucket[key] for bucket in buckets]
+            for key in series_keys
+        },
+    }
+
+
+@app.route("/api/analytics", methods=["GET"])
+@staff_required
+def get_analytics():
+    """
+    Staff dashboard metrics for one time period.
+
+    ?period=7d|30d|90d|all (default 7d, case-insensitive). Every
+    statistic is computed over the same window. Crucially, the queries
+    carry NO is_hidden filter: conversations a visitor soft-deleted
+    from their personal history remain fully counted here.
+    """
+    period = (request.args.get("period") or "7d").strip().lower()
+
+    if period not in ANALYTICS_PERIOD_DAYS:
+        return jsonify({
+            "error": "Invalid period. Use 7d, 30d, 90d or all."
+        }), 400
+
+    days = ANALYTICS_PERIOD_DAYS[period]
+
+    try:
+        with g.db_conn.cursor() as cur:
+            # CURRENT_DATE comes from the database so window edges and
+            # activity buckets share the server's timezone. first_day
+            # anchors the all-time axis (NULL only for an empty table).
+            cur.execute(
+                "SELECT CURRENT_DATE, MIN(created_at)::date "
+                "FROM conversations;"
+            )
+            today, first_day = cur.fetchone()
+
+            # Period window: static SQL fragment + one bound integer.
+            # The previous window has the same length and ends where
+            # the current one starts (used for the KPI deltas).
+            window = ""
+            window_params = ()
+            previous_window = ""
+            previous_params = ()
+            if days is not None:
+                window = "WHERE created_at >= CURRENT_DATE - %s::int"
+                window_params = (days - 1,)
+                previous_window = (
+                    "WHERE created_at >= CURRENT_DATE - %s::int"
+                    " AND created_at < CURRENT_DATE - %s::int"
+                )
+                previous_params = (2 * days - 1, days - 1)
+
+            # A. Overall statistics + previous window for deltas.
+            # COUNT(*) FILTER keeps every verdict/rating tally in one
+            # single-table scan.
+            count_sql = """
+                SELECT COUNT(*),
+                       COUNT(*) FILTER (WHERE verdict = 'answered'),
+                       COUNT(*) FILTER (WHERE verdict = 'unclear'),
+                       COUNT(*) FILTER (WHERE verdict = 'refused'),
+                       COUNT(*) FILTER (WHERE rating = 'up'),
+                       COUNT(*) FILTER (WHERE rating = 'down')
+                FROM conversations
+                {clause}
+            """
+            cur.execute(count_sql.format(clause=window), window_params)
+            overall = build_overall(cur.fetchone())
+
+            previous = None
+            if days is not None:
+                cur.execute(
+                    count_sql.format(clause=previous_window),
+                    previous_params,
+                )
+                previous = build_overall(cur.fetchone())
+
+            # B + C. Per-category totals, verdict split and NULL-safe
+            # average response time. Rows without a category (refusals)
+            # group into 'Uncategorized' instead of disappearing.
+            cur.execute(
+                """
+                SELECT COALESCE(category, 'Uncategorized') AS category,
+                       COUNT(*) AS total,
+                       COUNT(*) FILTER (WHERE verdict = 'answered'),
+                       COUNT(*) FILTER (WHERE verdict = 'unclear'),
+                       COUNT(*) FILTER (WHERE verdict = 'refused'),
+                       AVG(response_time_ms)::double precision
+                FROM conversations
+                {clause}
+                GROUP BY 1
+                ORDER BY total DESC, category ASC;
+                """.format(clause=window),
+                window_params,
+            )
+            categories = [build_category(row) for row in cur.fetchall()]
+
+            # D. Negative feedback: exactly verdict='answered' AND
+            #    rating='down' inside the selected window — the rows
+            #    the dashboard's Negative Feedback card lists.
+            negative_where = "verdict = 'answered' AND rating = 'down'"
+            negative_params = ()
+            if days is not None:
+                negative_where += (
+                    " AND created_at >= CURRENT_DATE - %s::int"
+                )
+                negative_params = (days - 1,)
+            cur.execute(
+                """
+                SELECT id, question, answer, category, rating, created_at
+                FROM conversations
+                WHERE {where_clause}
+                ORDER BY created_at DESC, id DESC;
+                """.format(where_clause=negative_where),
+                negative_params,
+            )
+            negative_feedback = [
+                {
+                    "id": str(row[0]),
+                    "question": row[1],
+                    "answer": row[2],
+                    "category": row[3],
+                    "rating": row[4],
+                    "created_at": (
+                        row[5].isoformat() if row[5] is not None else None
+                    ),
+                }
+                for row in cur.fetchall()
+            ]
+
+            # E. Real daily activity for the window; build_activity_
+            # buckets zero-fills the missing days afterwards.
+            cur.execute(
+                """
+                SELECT date_trunc('day', created_at)::date AS day,
+                       COUNT(*) AS total,
+                       COUNT(*) FILTER (WHERE verdict = 'answered'),
+                       COUNT(*) FILTER (WHERE rating = 'up'),
+                       COUNT(*) FILTER (WHERE rating = 'down')
+                FROM conversations
+                {clause}
+                GROUP BY 1
+                ORDER BY 1;
+                """.format(clause=window),
+                window_params,
+            )
+            daily = [
+                {
+                    "day": row[0],
+                    "total": row[1],
+                    "answered": row[2],
+                    "positive": row[3],
+                    "negative": row[4],
+                }
+                for row in cur.fetchall()
+            ]
+
+            if days is not None:
+                bucket_start = today - timedelta(days=days - 1)
+            else:
+                bucket_start = first_day  # earliest row, all-time view
+            activity = build_activity_buckets(
+                daily, bucket_start, today
+            )
+
+            # Recent Conversations table: same window, newest first.
+            cur.execute(
+                """
+                SELECT id, question, category, verdict, rating, created_at
+                FROM conversations
+                {clause}
+                ORDER BY created_at DESC, id DESC
+                LIMIT 10;
+                """.format(clause=window),
+                window_params,
+            )
+            recent = [
+                {
+                    "id": str(row[0]),
+                    "question": row[1],
+                    "category": row[2],
+                    "verdict": row[3],
+                    "rating": row[4],
+                    "created_at": (
+                        row[5].isoformat() if row[5] is not None else None
+                    ),
+                }
+                for row in cur.fetchall()
+            ]
+
+        return jsonify({
+            "period": period,
+            "overall": overall,
+            # Previous window for KPI deltas; null for all-time.
+            "previous": previous,
+            "categories": categories,
+            "negative_feedback": negative_feedback,
+            "recent": recent,
+            "activity": activity,
+            # Answer rate (0 when there are no conversations).
+            "accuracy_percent": round(
+                percent(overall["answered"], overall["total"])
+            ),
+        }), 200
+
+    except Exception:
+        app.logger.exception("Failed to retrieve analytics")
+        return jsonify({
+            "error": "Unable to retrieve analytics."
+        }), 500
+
+
+# --------------------------------------------------
+# 9. FAQ MANAGEMENT HELPERS
+# --------------------------------------------------
+
+def format_conversation(row):
+    """Convert a conversations row into the chat sidebar's record shape."""
+    return {
+        "id": str(row[0]),
+        "question": row[1],
+        "answer": row[2],
+        "category": row[3],
+        "verdict": row[4],
+        "rating": row[5],
+        "response_time_ms": float(row[6]) if row[6] is not None else None,
+        "created_at": row[7].isoformat() if row[7] is not None else None,
+        # Custom title when renamed; the frontend generates a default from
+        # the question when this is null. Pinned rows sort to the top.
+        "title": row[8],
+        "is_pinned": bool(row[9]),
+    }
+
+
+def format_faq(row):
+    """Convert database columns to the shape expected by the React UI."""
+    return {
+        "id": str(row[0]),
+        "question": row[1],
+        "category": row[2],
+        "answer": row[3],
+        "status": "active" if row[4] else "inactive",
+        "updatedAt": row[5].isoformat()[:10],
+    }
+
+
+def validate_faq_input(data, require_status=True):
+    if not isinstance(data, dict):
+        return None, "A valid JSON request is required."
+
+    question = data.get("question")
+    answer = data.get("answer")
+    category = data.get("category")
+    status = data.get("status", "active")
+
+    if (
+        not isinstance(question, str)
+        or not question.strip()
+        or not isinstance(answer, str)
+        or not answer.strip()
+        or not isinstance(category, str)
+        or not category.strip()
+    ):
+        return None, "Question, answer and category are required."
+
+    if category not in VALID_CATEGORIES:
+        return None, "Invalid FAQ category."
+
+    if require_status and status not in ("active", "inactive"):
+        return None, "Status must be 'active' or 'inactive'."
+
+    return {
+        "question": question.strip(),
+        "answer": answer.strip(),
+        "category": category,
+        "status": status,
+    }, None
+
+
+# --------------------------------------------------
+# 10. GET ALL FAQS
+# --------------------------------------------------
+
+@app.route("/api/faqs", methods=["GET"])
+@staff_required
+def get_faqs():
+    try:
+        with g.db_conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, question, category,
+                       canonical_answer, is_active, updated_at
+                FROM faq_entries
+                ORDER BY updated_at DESC, id DESC;
+                """
+            )
+            rows = cur.fetchall()
+
+        return jsonify([format_faq(row) for row in rows]), 200
+
+    except Exception:
+        app.logger.exception("Failed to retrieve FAQs")
+        return jsonify({
+            "error": "Unable to retrieve FAQs."
+        }), 500
+
+
+# --------------------------------------------------
+# 11. CREATE FAQ
+# --------------------------------------------------
+
+@app.route("/api/faqs", methods=["POST"])
+@staff_required
+def create_faq():
+    data = request.get_json(silent=True)
+    faq_data, error = validate_faq_input(data)
+
+    if error:
+        return jsonify({"error": error}), 400
+
+    try:
+        with g.db_conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO faq_entries (
+                    question,
+                    category,
+                    keywords,
+                    canonical_answer,
+                    verification_status,
+                    is_active
+                )
+                VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING id, question, category,
+                          canonical_answer, is_active, updated_at;
+                """,
+                (
+                    faq_data["question"],
+                    faq_data["category"],
+                    [],
+                    faq_data["answer"],
+                    "unverified_sample",
+                    faq_data["status"] == "active",
+                ),
+            )
+            row = cur.fetchone()
+
+        # Commit on the shared request connection before refreshing the
+        # AI index — refresh reads through other pooled connections and
+        # would not see uncommitted data.
+        g.db_conn.commit()
+
+        # Refresh the in-memory matching index so the new FAQ is available.
+        refresh_assistant()
+
+        return jsonify(format_faq(row)), 201
+
+    except Exception:
+        app.logger.exception("Failed to create FAQ")
+        return jsonify({
+            "error": "Unable to create FAQ."
+        }), 500
+
+
+# --------------------------------------------------
+# 12. UPDATE FAQ
+# --------------------------------------------------
+
+@app.route("/api/faqs/<int:faq_id>", methods=["PUT"])
+@staff_required
+def update_faq(faq_id):
+    data = request.get_json(silent=True)
+    faq_data, error = validate_faq_input(data)
+
+    if error:
+        return jsonify({"error": error}), 400
+
+    try:
+        with g.db_conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE faq_entries
+                SET question = %s,
+                    category = %s,
+                    canonical_answer = %s,
+                    is_active = %s,
+                    updated_at = NOW()
+                WHERE id = %s
+                RETURNING id, question, category,
+                          canonical_answer, is_active, updated_at;
+                """,
+                (
+                    faq_data["question"],
+                    faq_data["category"],
+                    faq_data["answer"],
+                    faq_data["status"] == "active",
+                    faq_id,
+                ),
+            )
+            row = cur.fetchone()
+
+            if row is None:
+                return jsonify({
+                    "error": "FAQ not found."
+                }), 404
+
+        # Commit before the AI index refresh (see create_faq).
+        g.db_conn.commit()
+
+        refresh_assistant()
+
+        return jsonify(format_faq(row)), 200
+
+    except Exception:
+        app.logger.exception("Failed to update FAQ")
+        return jsonify({
+            "error": "Unable to update FAQ."
+        }), 500
+
+
+# --------------------------------------------------
+# 13. DELETE FAQ (SOFT DELETE)
+# --------------------------------------------------
+
+@app.route("/api/faqs/<int:faq_id>", methods=["DELETE"])
+@staff_required
+def delete_faq(faq_id):
+    try:
+        with g.db_conn.cursor() as cur:
+            # Soft delete: one flag shared with the Edit "inactive"
+            # status. No is_active predicate here — deleting an already
+            # inactive FAQ must be an idempotent no-op (200), while a
+            # genuinely unknown id must still 404.
+            cur.execute(
+                """
+                UPDATE faq_entries
+                SET is_active = FALSE,
+                    updated_at = CASE WHEN is_active THEN NOW()
+                                      ELSE updated_at END
+                WHERE id = %s
+                RETURNING id;
+                """,
+                (faq_id,),
+            )
+            deleted = cur.fetchone()
+
+            if deleted is None:
+                return jsonify({
+                    "error": "FAQ not found."
+                }), 404
+
+        # Commit before the AI index refresh (see create_faq).
+        g.db_conn.commit()
+
+        refresh_assistant()
+
+        return jsonify({
+            "message": "FAQ deleted successfully.",
+            "id": str(deleted[0]),
+        }), 200
+
+    except Exception:
+        app.logger.exception("Failed to delete FAQ")
+        return jsonify({
+            "error": "Unable to delete FAQ."
+        }), 500
+
+
+# --------------------------------------------------
+# 14. RUN FLASK SERVER
+# --------------------------------------------------
+
+if __name__ == "__main__":
+    app.run(
+        host="127.0.0.1",
+        port=5000,
+        # Off by default so a production `python app.py` can never expose
+        # the Werkzeug debugger. Local dev opts in with FLASK_DEBUG=true
+        # in backend/.env.
+        debug=os.getenv("FLASK_DEBUG", "false").lower() == "true",
+    )

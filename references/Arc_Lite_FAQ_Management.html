@@ -1,0 +1,882 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>ArcLite - FAQ Management</title>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS CDN with Forms & Container Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Custom Config -->
+<script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              bg: '#090715',
+              card: '#130e26',
+              cardHover: '#181231',
+              border: '#271e4a',
+              borderLight: '#352963',
+              primary: '#6320ee',
+              primaryHover: '#7928ca',
+              accentGlow: 'rgba(99, 32, 238, 0.35)',
+              textMuted: '#9490b3',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          boxShadow: {
+            'glow-purple': '0 0 20px -2px rgba(99, 32, 238, 0.45)',
+            'card-soft': '0 8px 30px rgba(0, 0, 0, 0.35)',
+          }
+        }
+      }
+    }
+  </script>
+<style data-purpose="custom-scrollbars">
+    /* Custom subtle dark scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #090715;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #271e4a;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #6320ee;
+    }
+  </style>
+<style data-purpose="glow-and-sparklines">
+    .glow-badge {
+      box-shadow: 0 0 15px rgba(99, 32, 238, 0.35);
+    }
+    .active-pill {
+      background: linear-gradient(135deg, #6320ee 0%, #7928ca 100%);
+      box-shadow: 0 2px 12px rgba(99, 32, 238, 0.4);
+    }
+    .sparkline-purple { filter: drop-shadow(0 2px 6px rgba(168, 85, 247, 0.4)); }
+    .sparkline-emerald { filter: drop-shadow(0 2px 6px rgba(16, 185, 129, 0.4)); }
+    .sparkline-amber { filter: drop-shadow(0 2px 6px rgba(245, 158, 11, 0.4)); }
+    .sparkline-cyan { filter: drop-shadow(0 2px 6px rgba(56, 189, 248, 0.4)); }
+    .sparkline-coral { filter: drop-shadow(0 2px 6px rgba(244, 63, 94, 0.4)); }
+  </style>
+</head>
+<body class="bg-[#090715] text-slate-100 min-h-screen font-sans antialiased selection:bg-brand-primary selection:text-white flex flex-col justify-between">
+<!-- BEGIN: ApplicationLayout -->
+<div class="w-full flex flex-col min-h-screen">
+<!-- BEGIN: TopNavigationBar -->
+<header class="w-full border-b border-brand-border bg-[#0d0920]/90 backdrop-blur-md sticky top-0 z-40">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+<!-- Left: Logo & Brand Emblem -->
+<div class="flex items-center gap-8">
+<a class="flex items-center gap-3 group focus:outline-none" href="#">
+<img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSit-cumgFUGcVYlq2Jng-O5rFNrrleQ9y3WwrzRb5xLsfkth9_SZmsPd8a49bMS03VHcNMC7VjEv4WN1dDv6p2fZo_N5kJz3umXqa5VPsZkIa8_JFFplWe8anzjMadbgIfuIzzExr4wO25Iq-T8yl811M4BDrO_hVO7XRgYDO4FABT7S_Q6CTgLnz22QG2LeseK5ejXyCqI_Ihzb_uKwK108dgAC8hNBAvdmMMKJRMaaqQEQV52zhTw" alt="ArcLite Logo" class="w-10 h-10 object-contain group-hover:scale-105 transition-transform duration-200">
+<span class="text-xl font-bold tracking-tight text-white group-hover:text-purple-200 transition-colors">Arc<span style="color: rgb(170, 89, 248);" class="">Lite</span></span>
+</a>
+<!-- Navigation Links (Desktop) -->
+<nav aria-label="Main Navigation" class="hidden md:flex items-center gap-2">
+<a class="px-4 py-2 text-sm font-medium text-brand-textMuted hover:text-white hover:bg-brand-card rounded-full transition" href="#">
+              Chat
+            </a>
+<a class="px-5 py-2 text-sm font-semibold text-white active-pill rounded-full transition shadow-md" href="#">
+              FAQ Management
+            </a>
+<a class="px-4 py-2 text-sm font-medium text-brand-textMuted hover:text-white hover:bg-brand-card rounded-full transition" href="#">
+              Analytics Dashboard
+            </a>
+</nav>
+</div>
+<!-- Right: Actions & Profile -->
+<div class="hidden md:flex items-center gap-5">
+<!-- Ambient Theme / Sun Indicator (Locked dark theme) -->
+<button aria-label="Theme indicator" class="w-9 h-9 rounded-full flex items-center justify-center text-brand-textMuted hover:text-white hover:bg-brand-card transition focus:outline-none">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<div class="h-6 w-[1px] bg-brand-border"></div>
+<!-- User Avatar -->
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-brand-primary flex items-center justify-center text-white font-semibold text-sm ring-2 ring-brand-primary/50 shadow-sm">
+              S
+            </div>
+<button class="text-sm font-medium text-brand-textMuted hover:text-rose-400 transition" onclick="showNotification('User logged out')">
+              Logout
+            </button>
+</div>
+</div>
+<!-- Mobile Menu Toggle Button -->
+<div class="flex md:hidden items-center gap-2">
+<button aria-label="Theme" class="p-2 text-brand-textMuted hover:text-white">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<button aria-label="Toggle navigation menu" class="p-2 text-slate-300 hover:text-white focus:outline-none" id="mobileMenuBtn">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+</div>
+<!-- Mobile Dropdown Navigation -->
+<div class="hidden md:hidden px-4 pt-2 pb-5 border-t border-brand-border bg-[#0d0920] space-y-2" id="mobileNavMenu">
+<a class="block px-3 py-2 rounded-lg text-sm text-brand-textMuted hover:text-white hover:bg-brand-card" href="#">Chat</a>
+<a class="block px-3 py-2 rounded-lg text-sm font-semibold text-white bg-brand-primary" href="#">FAQ Management</a>
+<a class="block px-3 py-2 rounded-lg text-sm text-brand-textMuted hover:text-white hover:bg-brand-card" href="#">Analytics Dashboard</a>
+<div class="pt-3 border-t border-brand-border flex items-center justify-between px-3">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-brand-primary text-white flex items-center justify-center font-bold text-xs">S</div>
+<span class="text-xs text-brand-textMuted">Logged in as admin</span>
+</div>
+<button class="text-xs font-semibold text-rose-400 hover:underline">Logout</button>
+</div>
+</div>
+</header>
+<!-- END: TopNavigationBar -->
+<!-- BEGIN: MainContentWrapper -->
+<main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-7">
+<!-- BEGIN: PageHeaderSection -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+<div class="flex items-start gap-4">
+<!-- Glowing Book Icon Badge -->
+<div class="w-14 h-14 rounded-2xl bg-[#1d163d] border border-purple-500/40 flex-shrink-0 flex items-center justify-center text-purple-400 shadow-glow-purple">
+<svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div>
+<h1 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">FAQ Management</h1>
+<p class="text-sm text-brand-textMuted mt-1 max-w-2xl leading-relaxed">
+              Manage your FAQ knowledge base to ensure Arc Lite provides accurate and relevant answers.
+            </p>
+</div>
+</div>
+<!-- Add New FAQ Button -->
+<button class="inline-flex items-center justify-center gap-2.5 px-6 py-3 rounded-full bg-gradient-to-r from-brand-primary to-indigo-600 text-white font-semibold text-sm shadow-glow-purple hover:brightness-110 active:scale-95 transition-all duration-150 w-full sm:w-auto" id="openAddModalBtn">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+</svg>
+<span class="">Add New FAQ</span>
+</button>
+</div>
+<!-- END: PageHeaderSection -->
+<!-- BEGIN: KpiMetricsCards -->
+<!-- Desktop: 5 cards in single row; Mobile: 2 cols + 5th full width -->
+<section aria-label="Key FAQ Statistics" class="grid grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4">
+<!-- Card 1: Total FAQs -->
+<div class="bg-brand-card hover:bg-brand-cardHover border border-brand-border rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition duration-200">
+<div>
+<div class="flex items-center gap-2.5 mb-2">
+<div class="w-7 h-7 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs">
+<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+<path clip-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" fill-rule="evenodd"></path>
+</svg>
+</div>
+<span class="text-xs font-medium text-brand-textMuted">Total FAQs</span>
+</div>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-2xl sm:text-3xl font-bold text-white tracking-tight">120</span>
+<span class="text-xs font-semibold text-emerald-400 flex items-center">
+                ↑ 5%
+              </span>
+</div>
+</div>
+<!-- Sparkline Wave SVG -->
+<div class="mt-3 w-full h-8 overflow-hidden">
+<svg class="w-full h-full sparkline-purple" preserveAspectRatio="none" viewBox="0 0 120 32">
+<path d="M0,24 Q25,28 45,18 T90,22 T120,6" fill="none" stroke="#a855f7" stroke-linecap="round" stroke-width="2.5"></path>
+</svg>
+</div>
+</div>
+<!-- Card 2: Courses -->
+<div class="bg-brand-card hover:bg-brand-cardHover border border-brand-border rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition duration-200">
+<div>
+<div class="flex items-center gap-2.5 mb-2">
+<div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs">
+<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+<path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a10.973 10.973 0 00-.25 2.302c0 2.115.535 3.844 1.5 5.021C7.458 16.55 8.879 17 10.5 17c1.62 0 3.042-.45 4-1.627.965-1.177 1.5-2.906 1.5-5.021 0-.79-.089-1.565-.25-2.302l2.644-1.132a1 1 0 000-1.84l-7-3z"></path>
+</svg>
+</div>
+<span class="text-xs font-medium text-brand-textMuted">Courses</span>
+</div>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-2xl sm:text-3xl font-bold text-white tracking-tight">35</span>
+<span class="text-xs font-semibold text-emerald-400 flex items-center">
+                ↑ 2%
+              </span>
+</div>
+</div>
+<!-- Sparkline Wave SVG -->
+<div class="mt-3 w-full h-8 overflow-hidden">
+<svg class="w-full h-full sparkline-emerald" preserveAspectRatio="none" viewBox="0 0 120 32">
+<path d="M0,22 Q30,12 60,25 T100,10 T120,8" fill="none" stroke="#10b981" stroke-linecap="round" stroke-width="2.5"></path>
+</svg>
+</div>
+</div>
+<!-- Card 3: Certificates -->
+<div class="bg-brand-card hover:bg-brand-cardHover border border-brand-border rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition duration-200">
+<div>
+<div class="flex items-center gap-2.5 mb-2">
+<div class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs">
+<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+<path clip-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 003.172 1.602L10 15.545l2.828 2.057A2 2 0 0016 16V4a2 2 0 00-2-2H6zm4 9.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" fill-rule="evenodd"></path>
+</svg>
+</div>
+<span class="text-xs font-medium text-brand-textMuted">Certificates</span>
+</div>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-2xl sm:text-3xl font-bold text-white tracking-tight">28</span>
+<span class="text-xs font-semibold text-emerald-400 flex items-center">
+                ↑ 1%
+              </span>
+</div>
+</div>
+<!-- Sparkline Wave SVG -->
+<div class="mt-3 w-full h-8 overflow-hidden">
+<svg class="w-full h-full sparkline-amber" preserveAspectRatio="none" viewBox="0 0 120 32">
+<path d="M0,26 Q25,28 50,18 T85,22 T120,12" fill="none" stroke="#f59e0b" stroke-linecap="round" stroke-width="2.5"></path>
+</svg>
+</div>
+</div>
+<!-- Card 4: Jobs -->
+<div class="bg-brand-card hover:bg-brand-cardHover border border-brand-border rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition duration-200">
+<div>
+<div class="flex items-center gap-2.5 mb-2">
+<div class="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xs">
+<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+<path clip-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h2zm4-2a1 1 0 00-1 1v1h2V5a1 1 0 00-1-1z" fill-rule="evenodd"></path>
+</svg>
+</div>
+<span class="text-xs font-medium text-brand-textMuted">Jobs</span>
+</div>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-2xl sm:text-3xl font-bold text-white tracking-tight">32</span>
+<span class="text-xs font-semibold text-emerald-400 flex items-center">
+                ↑ 3%
+              </span>
+</div>
+</div>
+<!-- Sparkline Wave SVG -->
+<div class="mt-3 w-full h-8 overflow-hidden">
+<svg class="w-full h-full sparkline-cyan" preserveAspectRatio="none" viewBox="0 0 120 32">
+<path d="M0,28 Q30,26 60,18 T95,20 T120,8" fill="none" stroke="#38bdf8" stroke-linecap="round" stroke-width="2.5"></path>
+</svg>
+</div>
+</div>
+<!-- Card 5: Account (Col span 2 on mobile to match reference image) -->
+<div class="col-span-2 lg:col-span-1 bg-brand-card hover:bg-brand-cardHover border border-brand-border rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition duration-200">
+<div>
+<div class="flex items-center gap-2.5 mb-2">
+<div class="w-7 h-7 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs">
+<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+<path clip-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" fill-rule="evenodd"></path>
+</svg>
+</div>
+<span class="text-xs font-medium text-brand-textMuted">Account</span>
+</div>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-2xl sm:text-3xl font-bold text-white tracking-tight">25</span>
+<span class="text-xs font-semibold text-emerald-400 flex items-center">
+                ↑ 2%
+              </span>
+</div>
+</div>
+<!-- Sparkline Wave SVG -->
+<div class="mt-3 w-full h-8 overflow-hidden">
+<svg class="w-full h-full sparkline-coral" preserveAspectRatio="none" viewBox="0 0 120 32">
+<path d="M0,26 Q35,28 65,22 T95,20 T120,6" fill="none" stroke="#f43f5e" stroke-linecap="round" stroke-width="2.5"></path>
+</svg>
+</div>
+</div>
+</section>
+<!-- END: KpiMetricsCards -->
+<!-- BEGIN: SearchAndFiltersBar -->
+<section aria-label="Search and Filter Controls" class="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
+<!-- Search Input -->
+<div class="relative flex-1">
+<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-purple-400">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<input class="w-full pl-11 pr-4 py-2.5 bg-brand-card/90 border border-brand-border hover:border-brand-borderLight rounded-xl text-sm text-slate-100 placeholder-brand-textMuted focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition" id="faqSearchInput" placeholder="Search FAQs..." type="text">
+</div>
+<!-- Filter Dropdowns Row -->
+<div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5">
+<!-- Category Filter -->
+<div class="relative flex-1 sm:flex-initial">
+<select class="w-full appearance-none bg-brand-card border border-brand-border hover:border-brand-borderLight rounded-xl px-4 py-2.5 pr-9 text-xs sm:text-sm font-medium text-slate-200 focus:outline-none focus:border-brand-primary cursor-pointer transition" id="categoryFilter">
+<option value="all">All Categories</option>
+<option value="courses">Courses</option>
+<option value="certificates">Certificates</option>
+<option value="jobs">Jobs</option>
+<option value="account">Account</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-brand-textMuted">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<!-- Status Filter -->
+<div class="relative flex-1 sm:flex-initial">
+<select class="w-full appearance-none bg-brand-card border border-brand-border hover:border-brand-borderLight rounded-xl px-4 py-2.5 pr-9 text-xs sm:text-sm font-medium text-slate-200 focus:outline-none focus:border-brand-primary cursor-pointer transition" id="statusFilter">
+<option value="all">Status: All</option>
+<option selected="" value="active">● Active</option>
+<option value="inactive">○ Inactive</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-brand-textMuted">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<!-- Sort Filter -->
+<div class="relative flex-1 sm:flex-initial">
+<select class="w-full appearance-none bg-brand-card border border-brand-border hover:border-brand-borderLight rounded-xl px-4 py-2.5 pr-9 text-xs sm:text-sm font-medium text-slate-200 focus:outline-none focus:border-brand-primary cursor-pointer transition" id="sortFilter">
+<option value="updated">⇅ Recently Updated</option>
+<option value="oldest">⇅ Oldest</option>
+<option value="alpha">⇅ Alphabetical</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-brand-textMuted">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<!-- Clear Filters Button -->
+<button class="px-3.5 py-2.5 bg-brand-card hover:bg-brand-cardHover border border-brand-border rounded-xl text-xs sm:text-sm text-brand-textMuted hover:text-white flex items-center justify-center gap-1.5 transition" id="clearFiltersBtn" title="Reset Filters">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="hidden sm:inline">Clear Filters</span>
+</button>
+</div>
+</section>
+<!-- END: SearchAndFiltersBar -->
+<!-- BEGIN: FaqDataTable -->
+<section aria-label="FAQ Knowledge Table" class="bg-brand-card border border-brand-border rounded-2xl overflow-hidden shadow-card-soft">
+<!-- Desktop Table View -->
+<div class="hidden md:block overflow-x-auto">
+<table class="w-full text-left border-collapse" id="faqTable">
+<thead>
+<tr class="border-b border-brand-border/80 text-xs font-semibold uppercase tracking-wider text-brand-textMuted bg-[#100b21]">
+<th class="py-4 px-6 w-3/12" scope="col">Question</th>
+<th class="py-4 px-6 w-3/12" scope="col">Answer Preview</th>
+<th class="py-4 px-6 w-2/12" scope="col">Category</th>
+<th class="py-4 px-6 w-1/12" scope="col">Status</th>
+<th class="py-4 px-6 w-2/12" scope="col">Last Updated</th>
+<th class="py-4 px-6 w-1/12 text-right" scope="col">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-brand-border/50 text-sm" id="faqTableBody">
+<!-- Row 1 -->
+<tr class="hover:bg-[#181233]/70 transition duration-150 group" data-category="courses" data-status="active">
+<td class="py-4.5 px-6 font-medium text-white">How can I enroll in a course?</td>
+<td class="py-4.5 px-6 text-brand-textMuted max-w-xs truncate">Visit the courses page and select your program to get started right away.</td>
+<td class="py-4.5 px-6">
+<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-900/60 text-purple-300 border border-purple-700/50">
+                    Courses
+                  </span>
+</td>
+<td class="py-4.5 px-6">
+<span class="inline-flex items-center text-xs font-medium text-emerald-400 gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Active
+                  </span>
+</td>
+<td class="py-4.5 px-6 text-brand-textMuted text-xs">Oct 31, 2026</td>
+<td class="py-4.5 px-6 text-right">
+<div class="flex items-center justify-end gap-2">
+<button class="p-1.5 rounded-lg bg-purple-900/40 text-purple-300 hover:text-white hover:bg-purple-700/60 transition edit-btn" title="Edit FAQ">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<button class="p-1.5 rounded-lg bg-rose-900/30 text-rose-400 hover:text-rose-200 hover:bg-rose-700/50 transition delete-btn" title="Delete FAQ">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-[#181233]/70 transition duration-150 group" data-category="certificates" data-status="active">
+<td class="py-4.5 px-6 font-medium text-white">How do I download my certificate?</td>
+<td class="py-4.5 px-6 text-brand-textMuted max-w-xs truncate">Go to your account section, select Certificates, and click download.</td>
+<td class="py-4.5 px-6">
+<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-950/70 text-emerald-300 border border-emerald-700/50">
+                    Certificates
+                  </span>
+</td>
+<td class="py-4.5 px-6">
+<span class="inline-flex items-center text-xs font-medium text-emerald-400 gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Active
+                  </span>
+</td>
+<td class="py-4.5 px-6 text-brand-textMuted text-xs">Oct 30, 2026</td>
+<td class="py-4.5 px-6 text-right">
+<div class="flex items-center justify-end gap-2">
+<button class="p-1.5 rounded-lg bg-purple-900/40 text-purple-300 hover:text-white hover:bg-purple-700/60 transition edit-btn" title="Edit FAQ">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<button class="p-1.5 rounded-lg bg-rose-900/30 text-rose-400 hover:text-rose-200 hover:bg-rose-700/50 transition delete-btn" title="Delete FAQ">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-[#181233]/70 transition duration-150 group" data-category="jobs" data-status="active">
+<td class="py-4.5 px-6 font-medium text-white">Is there a job opening?</td>
+<td class="py-4.5 px-6 text-brand-textMuted max-w-xs truncate">Visit our careers page or verify open opportunities with partner recruiters.</td>
+<td class="py-4.5 px-6">
+<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-950/70 text-amber-300 border border-amber-700/50">
+                    Jobs
+                  </span>
+</td>
+<td class="py-4.5 px-6">
+<span class="inline-flex items-center text-xs font-medium text-emerald-400 gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Active
+                  </span>
+</td>
+<td class="py-4.5 px-6 text-brand-textMuted text-xs">Oct 29, 2026</td>
+<td class="py-4.5 px-6 text-right">
+<div class="flex items-center justify-end gap-2">
+<button class="p-1.5 rounded-lg bg-purple-900/40 text-purple-300 hover:text-white hover:bg-purple-700/60 transition edit-btn" title="Edit FAQ">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<button class="p-1.5 rounded-lg bg-rose-900/30 text-rose-400 hover:text-rose-200 hover:bg-rose-700/50 transition delete-btn" title="Delete FAQ">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-[#181233]/70 transition duration-150 group" data-category="account" data-status="active">
+<td class="py-4.5 px-6 font-medium text-white">How do I reset my password?</td>
+<td class="py-4.5 px-6 text-brand-textMuted max-w-xs truncate">Click on "Forgot Password" on the login screen to receive an email link.</td>
+<td class="py-4.5 px-6">
+<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-950/70 text-blue-300 border border-blue-700/50">
+                    Account
+                  </span>
+</td>
+<td class="py-4.5 px-6">
+<span class="inline-flex items-center text-xs font-medium text-emerald-400 gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Active
+                  </span>
+</td>
+<td class="py-4.5 px-6 text-brand-textMuted text-xs">Oct 28, 2026</td>
+<td class="py-4.5 px-6 text-right">
+<div class="flex items-center justify-end gap-2">
+<button class="p-1.5 rounded-lg bg-purple-900/40 text-purple-300 hover:text-white hover:bg-purple-700/60 transition edit-btn" title="Edit FAQ">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<button class="p-1.5 rounded-lg bg-rose-900/30 text-rose-400 hover:text-rose-200 hover:bg-rose-700/50 transition delete-btn" title="Delete FAQ">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-[#181233]/70 transition duration-150 group" data-category="courses" data-status="active">
+<td class="py-4.5 px-6 font-medium text-white">What are the benefits of ArchintX courses?</td>
+<td class="py-4.5 px-6 text-brand-textMuted max-w-xs truncate">ArchintX courses offer recognized industry certificates and real projects.</td>
+<td class="py-4.5 px-6">
+<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-900/60 text-purple-300 border border-purple-700/50">
+                    Courses
+                  </span>
+</td>
+<td class="py-4.5 px-6">
+<span class="inline-flex items-center text-xs font-medium text-emerald-400 gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Active
+                  </span>
+</td>
+<td class="py-4.5 px-6 text-brand-textMuted text-xs">Oct 27, 2026</td>
+<td class="py-4.5 px-6 text-right">
+<div class="flex items-center justify-end gap-2">
+<button class="p-1.5 rounded-lg bg-purple-900/40 text-purple-300 hover:text-white hover:bg-purple-700/60 transition edit-btn" title="Edit FAQ">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<button class="p-1.5 rounded-lg bg-rose-900/30 text-rose-400 hover:text-rose-200 hover:bg-rose-700/50 transition delete-btn" title="Delete FAQ">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Mobile Optimized FAQ List View (Matches Phone Mockup Exactly) -->
+<div class="block md:hidden divide-y divide-brand-border/60" id="mobileFaqList">
+<div class="p-4 flex items-center justify-between gap-3">
+<div class="flex-1 pr-2">
+<span class="text-xs uppercase text-brand-textMuted tracking-wider font-semibold block mb-1">Question</span>
+<p class="text-sm font-medium text-white leading-snug">How can I enroll in a course?</p>
+</div>
+<div class="flex items-center gap-2 flex-shrink-0">
+<button class="p-2 rounded-lg bg-purple-900/40 text-purple-300 hover:text-white edit-btn">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="p-2 rounded-lg bg-rose-900/30 text-rose-400 hover:text-rose-200 delete-btn">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+</div>
+<div class="p-4 flex items-center justify-between gap-3">
+<div class="flex-1 pr-2">
+<span class="text-xs uppercase text-brand-textMuted tracking-wider font-semibold block mb-1">Question</span>
+<p class="text-sm font-medium text-white leading-snug">How do I download my certificate?</p>
+</div>
+<div class="flex items-center gap-2 flex-shrink-0">
+<button class="p-2 rounded-lg bg-purple-900/40 text-purple-300 hover:text-white edit-btn">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="p-2 rounded-lg bg-rose-900/30 text-rose-400 hover:text-rose-200 delete-btn">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+</div>
+<div class="p-4 flex items-center justify-between gap-3">
+<div class="flex-1 pr-2">
+<span class="text-xs uppercase text-brand-textMuted tracking-wider font-semibold block mb-1">Question</span>
+<p class="text-sm font-medium text-white leading-snug">Is there a job opening?</p>
+</div>
+<div class="flex items-center gap-2 flex-shrink-0">
+<button class="p-2 rounded-lg bg-purple-900/40 text-purple-300 hover:text-white edit-btn">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="p-2 rounded-lg bg-rose-900/30 text-rose-400 hover:text-rose-200 delete-btn">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+</div>
+</div>
+<!-- Table Footer / Pagination -->
+<div class="px-6 py-4 border-t border-brand-border/70 flex flex-col sm:flex-row items-center justify-between gap-4">
+<p class="text-xs text-brand-textMuted text-center sm:text-left">
+            Showing <span class="font-medium text-white">1–5</span> of <span class="font-medium text-white">120</span> FAQs
+          </p>
+<!-- Interactive Pagination Buttons -->
+<nav aria-label="Pagination" class="flex items-center gap-1.5">
+<button aria-label="Previous page" class="w-8 h-8 rounded-lg bg-brand-border/40 hover:bg-brand-primary text-slate-300 hover:text-white flex items-center justify-center text-xs transition">
+              ‹
+            </button>
+<button aria-current="page" class="w-8 h-8 rounded-lg bg-brand-primary text-white font-medium flex items-center justify-center text-xs shadow-glow-purple">
+              1
+            </button>
+<button class="w-8 h-8 rounded-lg hover:bg-brand-card hover:text-white text-brand-textMuted flex items-center justify-center text-xs transition">
+              2
+            </button>
+<button class="w-8 h-8 rounded-lg hover:bg-brand-card hover:text-white text-brand-textMuted flex items-center justify-center text-xs transition">
+              3
+            </button>
+<span class="w-8 h-8 flex items-center justify-center text-xs text-brand-textMuted">...</span>
+<button class="w-8 h-8 rounded-lg hover:bg-brand-card hover:text-white text-brand-textMuted flex items-center justify-center text-xs transition">
+              24
+            </button>
+<button aria-label="Next page" class="w-8 h-8 rounded-lg bg-brand-border/40 hover:bg-brand-primary text-slate-300 hover:text-white flex items-center justify-center text-xs transition">
+              ›
+            </button>
+</nav>
+</div>
+</section>
+<!-- END: FaqDataTable -->
+<!-- BEGIN: PerformanceCalloutBanner -->
+<section class="bg-gradient-to-r from-[#171035] to-[#120c2c] border border-brand-border/90 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<div>
+<h3 class="text-sm font-semibold text-white">FAQs Performing Well</h3>
+<p class="text-xs text-brand-textMuted mt-0.5">Your assistant is answering 98% of questions correctly using these entries.</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-950/60 text-emerald-400 border border-emerald-800/40">
+            ● 98% Match Rate
+          </span>
+</div>
+</section>
+<!-- END: PerformanceCalloutBanner -->
+</main>
+<!-- END: MainContentWrapper -->
+<!-- BEGIN: Footer -->
+<footer class="w-full border-t border-brand-border/60 py-6 mt-12 bg-[#090715]">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-brand-textMuted">
+<p class="">© 2026 ArcLite. All rights reserved.</p>
+<div class="flex items-center gap-6">
+<a class="hover:text-purple-400 transition" href="#">Documentation</a>
+<a class="hover:text-purple-400 transition" href="#">API Reference</a>
+<a class="hover:text-purple-400 transition" href="#">Support</a>
+</div>
+</div>
+</footer>
+<!-- END: Footer -->
+</div>
+<!-- END: ApplicationLayout -->
+<!-- BEGIN: AddEditFaqModal -->
+<div class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" id="faqModal">
+<div class="bg-brand-card border border-brand-border rounded-2xl w-full max-w-lg p-6 shadow-2xl relative">
+<!-- Modal Header -->
+<div class="flex items-center justify-between border-b border-brand-border pb-4 mb-5">
+<h3 class="text-lg font-bold text-white" id="modalTitle">Add New FAQ</h3>
+<button class="text-brand-textMuted hover:text-white transition" id="closeModalBtn">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+<!-- Modal Form -->
+<form class="space-y-4" id="faqForm">
+<div>
+<label class="block text-xs font-semibold uppercase tracking-wider text-brand-textMuted mb-1.5" for="modalQuestion">Question</label>
+<input class="w-full px-3.5 py-2.5 bg-[#0e0922] border border-brand-border rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary" id="modalQuestion" placeholder="e.g. How do I get verified?" required="" type="text">
+</div>
+<div>
+<label class="block text-xs font-semibold uppercase tracking-wider text-brand-textMuted mb-1.5" for="modalAnswer">Answer Preview / Text</label>
+<textarea class="w-full px-3.5 py-2.5 bg-[#0e0922] border border-brand-border rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary" id="modalAnswer" placeholder="Provide a concise and accurate response..." required="" rows="4"></textarea>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="block text-xs font-semibold uppercase tracking-wider text-brand-textMuted mb-1.5" for="modalCategory">Category</label>
+<select class="w-full px-3 py-2 bg-[#0e0922] border border-brand-border rounded-xl text-sm text-white focus:outline-none focus:border-brand-primary" id="modalCategory">
+<option value="courses">Courses</option>
+<option value="certificates">Certificates</option>
+<option value="jobs">Jobs</option>
+<option value="account">Account</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-semibold uppercase tracking-wider text-brand-textMuted mb-1.5" for="modalStatus">Status</label>
+<select class="w-full px-3 py-2 bg-[#0e0922] border border-brand-border rounded-xl text-sm text-white focus:outline-none focus:border-brand-primary" id="modalStatus">
+<option value="active">Active</option>
+<option value="inactive">Inactive</option>
+</select>
+</div>
+</div>
+<!-- Modal Actions -->
+<div class="flex items-center justify-end gap-3 pt-4 border-t border-brand-border mt-6">
+<button class="px-4 py-2 rounded-xl text-sm text-brand-textMuted hover:text-white hover:bg-[#1f1640] transition" id="cancelModalBtn" type="button">
+            Cancel
+          </button>
+<button class="px-5 py-2 rounded-xl text-sm font-semibold bg-brand-primary hover:bg-brand-primaryHover text-white shadow-glow-purple transition" type="submit">
+            Save FAQ
+          </button>
+</div>
+</form>
+</div>
+</div>
+<!-- END: AddEditFaqModal -->
+<!-- BEGIN: DeleteConfirmModal -->
+<div class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/75 backdrop-blur-sm flex items-center justify-center p-4" id="deleteModal">
+<div class="bg-brand-card border border-brand-border rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center space-y-4">
+<div class="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 mx-auto flex items-center justify-center">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<div>
+<h4 class="text-base font-bold text-white">Delete FAQ Entry?</h4>
+<p class="text-xs text-brand-textMuted mt-1">This entry will be permanently removed from the ArcLite AI knowledge database.</p>
+</div>
+<div class="flex items-center justify-center gap-3 pt-2">
+<button class="px-4 py-2 rounded-xl text-xs font-semibold text-brand-textMuted hover:text-white bg-brand-card border border-brand-border transition" id="cancelDeleteBtn">
+          Cancel
+        </button>
+<button class="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-rose-600 hover:bg-rose-500 shadow-lg shadow-rose-600/30 transition" id="confirmDeleteBtn">
+          Delete FAQ
+        </button>
+</div>
+</div>
+</div>
+<!-- END: DeleteConfirmModal -->
+<!-- BEGIN: ToastNotification -->
+<div class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none bg-brand-card border border-brand-border px-4 py-3 rounded-xl shadow-glow-purple flex items-center gap-3" id="toastNotification">
+<span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+<span class="text-xs font-medium text-white" id="toastMessage">Action successful</span>
+</div>
+<!-- END: ToastNotification -->
+<!-- BEGIN: InteractiveScripts -->
+<script data-purpose="faq-management-interactions">
+    document.addEventListener('DOMContentLoaded', () => {
+      // Elements
+      const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+      const mobileNavMenu = document.getElementById('mobileNavMenu');
+      const openAddModalBtn = document.getElementById('openAddModalBtn');
+      const closeModalBtn = document.getElementById('closeModalBtn');
+      const cancelModalBtn = document.getElementById('cancelModalBtn');
+      const faqModal = document.getElementById('faqModal');
+      const faqForm = document.getElementById('faqForm');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalQuestion = document.getElementById('modalQuestion');
+      const modalAnswer = document.getElementById('modalAnswer');
+      
+      const deleteModal = document.getElementById('deleteModal');
+      const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+      const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+      
+      const searchInput = document.getElementById('faqSearchInput');
+      const categoryFilter = document.getElementById('categoryFilter');
+      const statusFilter = document.getElementById('statusFilter');
+      const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+
+      let targetDeleteRow = null;
+
+      // Toggle Mobile Menu
+      if (mobileMenuBtn && mobileNavMenu) {
+        mobileMenuBtn.addEventListener('click', () => {
+          mobileNavMenu.classList.toggle('hidden');
+        });
+      }
+
+      // Open Add Modal
+      openAddModalBtn.addEventListener('click', () => {
+        modalTitle.textContent = 'Add New FAQ';
+        faqForm.reset();
+        faqModal.classList.remove('hidden');
+      });
+
+      // Close Add Modal
+      const closeModal = () => {
+        faqModal.classList.add('hidden');
+      };
+      closeModalBtn.addEventListener('click', closeModal);
+      cancelModalBtn.addEventListener('click', closeModal);
+
+      // Handle Edit buttons
+      document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const row = e.target.closest('tr');
+          modalTitle.textContent = 'Edit FAQ';
+          if (row) {
+            modalQuestion.value = row.querySelector('td:first-child').innerText.trim();
+            modalAnswer.value = row.querySelector('td:nth-child(2)').innerText.trim();
+          } else {
+            // Mobile list fallback
+            const mobileCard = e.target.closest('div.p-4');
+            const questionText = mobileCard.querySelector('p').innerText.trim();
+            modalQuestion.value = questionText;
+            modalAnswer.value = 'Visit the relevant section to manage this setting.';
+          }
+          faqModal.classList.remove('hidden');
+        });
+      });
+
+      // Handle Delete buttons
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          targetDeleteRow = e.target.closest('tr') || e.target.closest('div.p-4');
+          deleteModal.classList.remove('hidden');
+        });
+      });
+
+      // Cancel Delete
+      cancelDeleteBtn.addEventListener('click', () => {
+        deleteModal.classList.add('hidden');
+        targetDeleteRow = null;
+      });
+
+      // Confirm Delete
+      confirmDeleteBtn.addEventListener('click', () => {
+        if (targetDeleteRow) {
+          targetDeleteRow.remove();
+          showNotification('FAQ item deleted successfully');
+        }
+        deleteModal.classList.add('hidden');
+        targetDeleteRow = null;
+      });
+
+      // Handle Form Submit
+      faqForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        closeModal();
+        showNotification('FAQ saved to ArcLite database');
+      });
+
+      // Table Search & Filter Logic
+      const filterTable = () => {
+        const query = searchInput.value.toLowerCase().trim();
+        const selectedCat = categoryFilter.value.toLowerCase();
+        const selectedStatus = statusFilter.value.toLowerCase();
+
+        const rows = document.querySelectorAll('#faqTableBody tr');
+        rows.forEach(row => {
+          const text = row.innerText.toLowerCase();
+          const rowCat = row.getAttribute('data-category') || '';
+          const rowStatus = row.getAttribute('data-status') || '';
+
+          const matchesQuery = query === '' || text.includes(query);
+          const matchesCat = selectedCat === 'all' || rowCat === selectedCat;
+          const matchesStatus = selectedStatus === 'all' || rowStatus === selectedStatus;
+
+          if (matchesQuery && matchesCat && matchesStatus) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      };
+
+      searchInput.addEventListener('input', filterTable);
+      categoryFilter.addEventListener('change', filterTable);
+      statusFilter.addEventListener('change', filterTable);
+
+      // Clear Filters
+      clearFiltersBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        categoryFilter.value = 'all';
+        statusFilter.value = 'all';
+        filterTable();
+        showNotification('Filters have been cleared');
+      });
+    });
+
+    // Toast Notification helper
+    function showNotification(msg) {
+      const toast = document.getElementById('toastNotification');
+      const toastMsg = document.getElementById('toastMessage');
+      if (toast && toastMsg) {
+        toastMsg.textContent = msg;
+        toast.classList.remove('translate-y-20', 'opacity-0');
+        setTimeout(() => {
+          toast.classList.add('translate-y-20', 'opacity-0');
+        }, 2800);
+      }
+    }
+  </script>
+<!-- END: InteractiveScripts -->
+
+
+
+
+</body></html>

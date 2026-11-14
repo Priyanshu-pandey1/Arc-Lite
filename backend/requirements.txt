@@ -1,0 +1,30 @@
+# Arc Lite backend — production dependencies for Render (Python 3.12)
+#
+# Direct dependencies only: every package imported by app.py, db.py and
+# ai_engine/* at runtime. Versions are the exact ones running in the
+# local Python 3.12.10 venv, where the full backend test suite passes.
+# Transitive dependencies (Flask's Jinja2/MarkupSafe/itsdangerous/
+# blinker/click, scikit-learn's scipy/joblib/threadpoolctl, psycopg's
+# typing-extensions/tzdata) resolve automatically from these pins.
+#
+# Deliberately excluded: dev/test-only tooling (none required at runtime)
+# and everything else from `pip freeze`.
+
+# --- Web framework & server ---
+Flask==3.1.3
+Flask-Cors==6.0.5
+Werkzeug==3.1.9          # app.py imports werkzeug.security directly
+gunicorn==26.2.0         # Render's WSGI server (POSIX; replaces app.run())
+
+# --- Auth & configuration ---
+PyJWT==2.15.1            # staff JWT encode/decode
+python-dotenv==1.2.4     # backend/.env loader (no-op if file absent)
+
+# --- Database (Neon PostgreSQL) ---
+psycopg[binary]==3.3.8   # binary extra bundles libpq: no system dep on Render
+psycopg-pool==3.3.3      # connection pool used by db.py
+
+# --- AI engine ---
+numpy==2.5.4             # matcher.py similarity matrices
+scikit-learn==1.9.1      # TF-IDF vectorizer + cosine similarity
+pyspellchecker==0.9.1    # preprocessing.py spell checking

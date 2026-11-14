@@ -1,0 +1,705 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Arc Lite - Analytics Dashboard</title>
+<!-- Tailwind CSS CDN with Forms & Container Queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Custom Configuration -->
+<script data-purpose="tailwind-config">
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              bg: '#080612',
+              card: '#120e24',
+              cardHover: '#17122e',
+              border: '#251c45',
+              borderSubtle: '#1a1433',
+              purple: '#7c3aed',
+              purpleGlow: '#8b5cf6',
+              purpleDark: '#5b21b6',
+              emerald: '#10b981',
+              amber: '#f59e0b',
+              orange: '#f97316',
+              rose: '#ef4444',
+              cyan: '#06b6d4',
+              blue: '#3b82f6',
+              textMuted: '#8b85a6',
+              textSubtle: '#676182'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          }
+        }
+      }
+    };
+  </script>
+<!-- Custom Styles for Precise Glows & Transitions -->
+<style data-purpose="custom-enhancements">
+    /* Smooth Scrollbar for Table */
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #0d0a1a;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #251c45;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #3b2c6d;
+    }
+    
+    /* Interactive Pulsing or Glow */
+    .glow-purple {
+      filter: drop-shadow(0 0 10px rgba(124, 58, 237, 0.45));
+    }
+    .glow-emerald {
+      filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.4));
+    }
+  </style>
+</head>
+<body class="bg-[#080612] text-slate-100 font-sans min-h-screen antialiased selection:bg-purple-600 selection:text-white flex flex-col">
+<!-- BEGIN: MainHeader -->
+<header class="border-b border-[#1e1738] bg-[#0c091d]/90 backdrop-blur-md sticky top-0 z-50 transition-colors">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+<!-- Left: Logo & Desktop Navigation Tabs -->
+<div class="flex items-center space-x-6 sm:space-x-8">
+<!-- Brand Logo -->
+<a class="flex items-center space-x-2.5 group" href="#">
+<img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCs3FCPt93Bw8ZylFJQ7yl49p-YzaywA_b6b4dDAjajmt3egyoEjfAfmk1MVHPM1YjRvgqDppi4z308_SqypEt8WTn9b74zfzwYPEKKNzIqdcKRjta-TG7ZrE1v6OcsxOwWQCm69rFXEXrLHrjjpO9M9QQHRLh4f3cGbZG9iUfa-UAfRjlKV2Fs1sRdyFr6DabSTBKqfsgqNlop_l9jRruVIczSvyUTiKFqWxf94mF9C7owUvjnq5f41w" alt="ArcLite Logo" class="w-8 h-8 object-contain flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+<span class="text-lg font-bold tracking-tight text-white group-hover:text-purple-300 transition-colors"><span class="text-white">Arc</span><span style="color: rgb(170, 89, 248);" class="">Lite</span></span>
+</a>
+<!-- Desktop Navigation Items -->
+<nav aria-label="Main Navigation" class="hidden md:flex items-center space-x-2 text-sm">
+<a class="px-3.5 py-1.5 rounded-full text-[#8b85a6] hover:text-white hover:bg-[#181333] transition-all font-medium" href="#">Chat</a>
+<a class="px-3.5 py-1.5 rounded-full text-[#8b85a6] hover:text-white hover:bg-[#181333] transition-all font-medium" href="#">FAQ Management</a>
+<a class="px-4 py-1.5 rounded-full bg-purple-600 text-white font-medium shadow-md shadow-purple-600/30 hover:bg-purple-500 transition-all" href="#">Analytics Dashboard</a>
+</nav>
+</div>
+<!-- Right: Utility Icons, Avatar, Logout, and Mobile Hamburger -->
+<div class="flex items-center space-x-3 sm:space-x-4">
+<!-- Theme Mode Toggle Button -->
+
+<!-- Divider line -->
+<div class="h-4 w-[1px] bg-[#251c45] hidden sm:block"></div>
+<!-- User Profile Avatar & Name Indicator -->
+<div class="hidden sm:flex items-center space-x-3">
+<div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-700 flex items-center justify-center font-bold text-white text-xs shadow-inner shadow-white/20">
+            S
+          </div>
+<button class="text-sm font-medium text-[#8b85a6] hover:text-white transition">Logout</button>
+</div>
+<!-- Mobile Avatar (Compact) -->
+<div class="sm:hidden w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-indigo-700 flex items-center justify-center font-bold text-white text-xs">
+          S
+        </div>
+<!-- Mobile Menu Toggle Button -->
+<button aria-label="Open mobile navigation" class="md:hidden p-2 rounded-lg text-[#8b85a6] hover:text-white hover:bg-[#1a1436] focus:outline-none" id="mobileMenuBtn" type="button">
+<svg class="w-6 h-6" fill="none" id="hamburgerIcon" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<svg class="w-6 h-6 hidden" fill="none" id="closeIcon" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+</div>
+<!-- Mobile Drawer Navigation -->
+<div class="hidden md:hidden border-b border-[#251c45] bg-[#0c091d] px-4 pt-3 pb-4 space-y-2" id="mobileMenu">
+<a class="block px-3 py-2 rounded-xl text-base font-medium text-[#8b85a6] hover:text-white hover:bg-[#181333]" href="#">Chat</a>
+<a class="block px-3 py-2 rounded-xl text-base font-medium text-[#8b85a6] hover:text-white hover:bg-[#181333]" href="#">FAQ Management</a>
+<a class="block px-3 py-2 rounded-xl text-base font-medium bg-purple-600/90 text-white" href="#">Analytics Dashboard</a>
+<div class="pt-2 border-t border-[#1e1738] flex items-center justify-between px-3">
+<span class="text-xs text-[#8b85a6]">Signed in as user</span>
+<button class="text-xs text-rose-400 font-medium">Logout</button>
+</div>
+</div>
+</header>
+<!-- END: MainHeader -->
+<!-- BEGIN: MainContent -->
+<main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6 md:space-y-8">
+<!-- BEGIN: DashboardHeaderAndFilters -->
+<section aria-label="Dashboard Overview Header" class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<!-- Title & Subtitle with Icon -->
+<div class="flex items-start space-x-3.5">
+<div class="p-2.5 rounded-xl bg-purple-950/60 border border-purple-800/40 text-purple-400 mt-1 sm:mt-0 flex-shrink-0">
+<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+<rect height="9" rx="1" width="3.5" x="3" y="11"></rect>
+<rect height="14" rx="1" width="3.5" x="9.5" y="6"></rect>
+<rect height="18" rx="1" width="3.5" x="16" y="2"></rect>
+</svg>
+</div>
+<div>
+<h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+            Analytics Dashboard
+          </h1>
+<p class="text-xs sm:text-sm text-[#8b85a6] mt-0.5 max-w-xl">
+            Monitor conversations, evaluate answer quality, and understand what users are asking.
+          </p>
+</div>
+</div>
+<!-- Time Filter Range Selector (7D, 30D, 90D) -->
+<div aria-label="Time period selector" class="flex items-center self-start sm:self-auto bg-[#130f28] p-1 rounded-full border border-[#251c45]" role="group">
+<button class="time-btn px-4 py-1 rounded-full text-xs font-semibold bg-purple-600 text-white shadow-sm transition-all" data-period="7D" type="button">
+          7D
+        </button>
+<button class="time-btn px-4 py-1 rounded-full text-xs font-semibold text-[#8b85a6] hover:text-white transition-all" data-period="30D" type="button">
+          30D
+        </button>
+<button class="time-btn px-4 py-1 rounded-full text-xs font-semibold text-[#8b85a6] hover:text-white transition-all" data-period="90D" type="button">
+          90D
+        </button>
+</div>
+</section>
+<!-- END: DashboardHeaderAndFilters -->
+<!-- BEGIN: KeyMetricsKPI -->
+<section aria-label="Key Performance Indicators" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
+<!-- KPI 1: Total Conversations -->
+<article class="bg-[#120e24] hover:bg-[#16122d] border border-[#251c45] rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-200">
+<div>
+<div class="flex items-center space-x-2 text-xs font-medium text-[#8b85a6] mb-2.5">
+<span class="w-6 h-6 rounded-lg bg-blue-950/80 text-blue-400 border border-blue-800/40 flex items-center justify-center flex-shrink-0">
+<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+<path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"></path>
+</svg>
+</span>
+<span class="truncate">Total Conversations</span>
+</div>
+<div class="flex items-baseline space-x-2">
+<span class="text-xl sm:text-2xl font-bold text-white tracking-tight">1,248</span>
+<span class="text-xs font-semibold text-emerald-400 flex items-center">
+              ↑ 12%
+            </span>
+</div>
+</div>
+<!-- Sparkline Curve SVG -->
+<div class="mt-3 pt-1">
+<svg class="w-full h-9 overflow-visible" fill="none" preserveAspectRatio="none" viewBox="0 0 100 28">
+<defs>
+<linearGradient id="grad-total" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.0"></stop>
+</linearGradient>
+</defs>
+<path d="M0,22 Q25,24 45,15 T85,18 T100,6" fill="none" stroke="#8b5cf6" stroke-linecap="round" stroke-width="2"></path>
+<path d="M0,22 Q25,24 45,15 T85,18 T100,6 L100,28 L0,28 Z" fill="url(#grad-total)"></path>
+</svg>
+</div>
+</article>
+<!-- KPI 2: Questions Answered -->
+<article class="bg-[#120e24] hover:bg-[#16122d] border border-[#251c45] rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-200">
+<div>
+<div class="flex items-center space-x-2 text-xs font-medium text-[#8b85a6] mb-2.5">
+<span class="w-6 h-6 rounded-lg bg-emerald-950/80 text-emerald-400 border border-emerald-800/40 flex items-center justify-center flex-shrink-0">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24">
+<polyline points="20 6 9 17 4 12"></polyline>
+</svg>
+</span>
+<span class="truncate">Questions Answered</span>
+</div>
+<div class="flex items-baseline space-x-2">
+<span class="text-xl sm:text-2xl font-bold text-white tracking-tight">986</span>
+<span class="text-xs font-semibold text-emerald-400 flex items-center">
+              ↑ 8%
+            </span>
+</div>
+</div>
+<!-- Sparkline Curve SVG -->
+<div class="mt-3 pt-1">
+<svg class="w-full h-9 overflow-visible" fill="none" preserveAspectRatio="none" viewBox="0 0 100 28">
+<defs>
+<linearGradient id="grad-answered" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#10b981" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#10b981" stop-opacity="0.0"></stop>
+</linearGradient>
+</defs>
+<path d="M0,24 Q30,22 50,14 T80,18 T100,8" fill="none" stroke="#10b981" stroke-linecap="round" stroke-width="2"></path>
+<path d="M0,24 Q30,22 50,14 T80,18 T100,8 L100,28 L0,28 Z" fill="url(#grad-answered)"></path>
+</svg>
+</div>
+</article>
+<!-- KPI 3: Unanswered Questions -->
+<article class="bg-[#120e24] hover:bg-[#16122d] border border-[#251c45] rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-200">
+<div>
+<div class="flex items-center space-x-2 text-xs font-medium text-[#8b85a6] mb-2.5">
+<span class="w-6 h-6 rounded-lg bg-amber-950/80 text-amber-400 border border-amber-800/40 flex items-center justify-center flex-shrink-0">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24">
+<circle cx="12" cy="12" r="10"></circle>
+<path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+<line x1="12" x2="12.01" y1="17" y2="17"></line>
+</svg>
+</span>
+<span class="truncate">Unanswered Questions</span>
+</div>
+<div class="flex items-baseline space-x-2">
+<span class="text-xl sm:text-2xl font-bold text-white tracking-tight">262</span>
+<span class="text-xs font-semibold text-orange-400 flex items-center">
+              ↓ 3%
+            </span>
+</div>
+</div>
+<!-- Sparkline Curve SVG -->
+<div class="mt-3 pt-1">
+<svg class="w-full h-9 overflow-visible" fill="none" preserveAspectRatio="none" viewBox="0 0 100 28">
+<defs>
+<linearGradient id="grad-unanswered" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#f97316" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#f97316" stop-opacity="0.0"></stop>
+</linearGradient>
+</defs>
+<path d="M0,23 Q25,23 50,17 T80,18 T100,10" fill="none" stroke="#f97316" stroke-linecap="round" stroke-width="2"></path>
+<path d="M0,23 Q25,23 50,17 T80,18 T100,10 L100,28 L0,28 Z" fill="url(#grad-unanswered)"></path>
+</svg>
+</div>
+</article>
+<!-- KPI 4: Positive Feedback -->
+<article class="bg-[#120e24] hover:bg-[#16122d] border border-[#251c45] rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-200">
+<div>
+<div class="flex items-center space-x-2 text-xs font-medium text-[#8b85a6] mb-2.5">
+<span class="w-6 h-6 rounded-lg bg-blue-950/80 text-cyan-400 border border-blue-800/40 flex items-center justify-center flex-shrink-0">
+<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+<path d="M2 20h2V8H2v12zm20-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L13.17 0 7.59 5.59C7.22 5.95 7 6.45 7 7v11c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"></path>
+</svg>
+</span>
+<span class="truncate">Positive Feedback</span>
+</div>
+<div class="flex items-baseline space-x-2">
+<span class="text-xl sm:text-2xl font-bold text-white tracking-tight">842</span>
+<span class="text-xs font-semibold text-emerald-400 flex items-center">
+              ↑ 15%
+            </span>
+</div>
+</div>
+<!-- Sparkline Curve SVG -->
+<div class="mt-3 pt-1">
+<svg class="w-full h-9 overflow-visible" fill="none" preserveAspectRatio="none" viewBox="0 0 100 28">
+<defs>
+<linearGradient id="grad-pos" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#06b6d4" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#06b6d4" stop-opacity="0.0"></stop>
+</linearGradient>
+</defs>
+<path d="M0,23 Q25,23 45,21 T75,18 T100,7" fill="none" stroke="#06b6d4" stroke-linecap="round" stroke-width="2"></path>
+<path d="M0,23 Q25,23 45,21 T75,18 T100,7 L100,28 L0,28 Z" fill="url(#grad-pos)"></path>
+</svg>
+</div>
+</article>
+<!-- KPI 5: Negative Feedback -->
+<article class="col-span-2 sm:col-span-1 bg-[#120e24] hover:bg-[#16122d] border border-[#251c45] rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-200">
+<div>
+<div class="flex items-center space-x-2 text-xs font-medium text-[#8b85a6] mb-2.5">
+<span class="w-6 h-6 rounded-lg bg-rose-950/80 text-rose-400 border border-rose-800/40 flex items-center justify-center flex-shrink-0">
+<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+<path d="M22 4h-2v12h2V4zm-4 0H9c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 24l5.58-5.59c.37-.36.59-.86.59-1.41V6c0-1.1-.9-2-2-2z"></path>
+</svg>
+</span>
+<span class="truncate">Negative Feedback</span>
+</div>
+<div class="flex items-baseline space-x-2">
+<span class="text-xl sm:text-2xl font-bold text-white tracking-tight">144</span>
+<span class="text-xs font-semibold text-rose-400 flex items-center">
+              ↓ 6%
+            </span>
+</div>
+</div>
+<!-- Sparkline Curve SVG -->
+<div class="mt-3 pt-1">
+<svg class="w-full h-9 overflow-visible" fill="none" preserveAspectRatio="none" viewBox="0 0 100 28">
+<defs>
+<linearGradient id="grad-neg" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#f43f5e" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#f43f5e" stop-opacity="0.0"></stop>
+</linearGradient>
+</defs>
+<path d="M0,23 Q25,23 50,17 T80,14 T100,16" fill="none" stroke="#f43f5e" stroke-linecap="round" stroke-width="2"></path>
+<path d="M0,23 Q25,23 50,17 T80,14 T100,16 L100,28 L0,28 Z" fill="url(#grad-neg)"></path>
+</svg>
+</div>
+</article>
+</section>
+<!-- END: KeyMetricsKPI -->
+<!-- BEGIN: MiddleChartsRow -->
+<section aria-label="Visual Analytics Charts" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Chart Left: Conversation Activity (Span 7 or 8 on desktop) -->
+<article class="lg:col-span-7 bg-[#120e24] border border-[#251c45] rounded-2xl p-5 sm:p-6 flex flex-col justify-between" data-purpose="conversation-activity-chart">
+<!-- Card Header with Legends -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded-lg bg-purple-950/60 text-purple-400 border border-purple-800/40 flex items-center justify-center">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+<polyline points="17 6 23 6 23 12"></polyline>
+</svg>
+</div>
+<h2 class="text-base font-semibold text-white">Conversation Activity</h2>
+</div>
+<!-- Color Legends -->
+<div class="flex items-center space-x-4 text-xs font-medium text-[#8b85a6]">
+<span class="flex items-center space-x-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm shadow-purple-500/50"></span>
+<span class="">Total</span>
+</span>
+<span class="flex items-center space-x-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50"></span>
+<span class="">Answered</span>
+</span>
+<span class="flex items-center space-x-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-sm shadow-orange-500/50"></span>
+<span class="">Unanswered</span>
+</span>
+</div>
+</div>
+<!-- Spline Line Chart Canvas / SVG Graphic -->
+<div class="w-full relative mt-2">
+<svg class="w-full h-56 sm:h-64" fill="none" viewBox="0 0 650 250" xmlns="http://www.w3.org/2000/svg">
+<!-- Gridlines & Y-Axis Labels -->
+<!-- 1000 -->
+<text fill="#676182" font-family="sans-serif" font-size="11" text-anchor="end" x="32" y="25">1,000</text>
+<line stroke="#1d163a" stroke-dasharray="3 3" stroke-width="1" x1="42" x2="630" y1="22" y2="22"></line>
+<!-- 750 -->
+<text fill="#676182" font-family="sans-serif" font-size="11" text-anchor="end" x="32" y="75">750</text>
+<line stroke="#1d163a" stroke-dasharray="3 3" stroke-width="1" x1="42" x2="630" y1="72" y2="72"></line>
+<!-- 500 -->
+<text fill="#676182" font-family="sans-serif" font-size="11" text-anchor="end" x="32" y="125">500</text>
+<line stroke="#1d163a" stroke-dasharray="3 3" stroke-width="1" x1="42" x2="630" y1="122" y2="122"></line>
+<!-- 250 -->
+<text fill="#676182" font-family="sans-serif" font-size="11" text-anchor="end" x="32" y="175">250</text>
+<line stroke="#1d163a" stroke-dasharray="3 3" stroke-width="1" x1="42" x2="630" y1="172" y2="172"></line>
+<!-- 0 -->
+<text fill="#676182" font-family="sans-serif" font-size="11" text-anchor="end" x="32" y="222">0</text>
+<line stroke="#251c45" stroke-width="1" x1="42" x2="630" y1="218" y2="218"></line>
+<!-- X-Axis Labels: Oct 25 to Oct 31 -->
+<!-- Oct 25 x=55, Oct 26 x=150, Oct 27 x=245, Oct 28 x=340, Oct 29 x=435, Oct 30 x=530, Oct 31 x=620 -->
+<text fill="#8b85a6" font-size="10.5" text-anchor="middle" x="55" y="240">Oct 25</text>
+<text fill="#8b85a6" font-size="10.5" text-anchor="middle" x="150" y="240">Oct 26</text>
+<text fill="#8b85a6" font-size="10.5" text-anchor="middle" x="245" y="240">Oct 27</text>
+<text fill="#8b85a6" font-size="10.5" text-anchor="middle" x="340" y="240">Oct 28</text>
+<text fill="#8b85a6" font-size="10.5" text-anchor="middle" x="435" y="240">Oct 29</text>
+<text fill="#8b85a6" font-size="10.5" text-anchor="middle" x="530" y="240">Oct 30</text>
+<text fill="#8b85a6" font-size="10.5" text-anchor="middle" x="620" y="240">Oct 31</text>
+<!-- Line 1: Total (Purple) -->
+<!-- Points: (55, 142), (150, 126), (245, 120), (340, 102), (435, 68), (530, 80), (620, 95) -->
+<path class="glow-purple" d="M 55 142 C 100 135, 120 128, 150 126 C 185 124, 215 122, 245 120 C 285 116, 305 106, 340 102 C 380 94, 405 70, 435 68 C 475 66, 505 80, 530 80 C 565 80, 590 92, 620 95" fill="none" stroke="#8b5cf6" stroke-linecap="round" stroke-width="2.6"></path>
+<!-- Line 2: Answered (Emerald) -->
+<!-- Points: (55, 168), (150, 148), (245, 144), (340, 134), (435, 96), (530, 110), (620, 126) -->
+<path class="glow-emerald" d="M 55 168 C 100 160, 120 150, 150 148 C 185 146, 215 145, 245 144 C 285 142, 305 138, 340 134 C 380 128, 405 98, 435 96 C 475 94, 505 108, 530 110 C 565 112, 590 124, 620 126" fill="none" stroke="#10b981" stroke-linecap="round" stroke-width="2.6"></path>
+<!-- Line 3: Unanswered (Orange) -->
+<!-- Points: (55, 192), (150, 185), (245, 185), (340, 178), (435, 162), (530, 175), (620, 182) -->
+<path d="M 55 192 C 100 188, 120 185, 150 185 C 185 185, 215 185, 245 185 C 285 185, 305 180, 340 178 C 380 174, 405 164, 435 162 C 475 160, 505 174, 530 175 C 565 176, 590 180, 620 182" fill="none" stroke="#f97316" stroke-linecap="round" stroke-width="2.4"></path>
+<!-- TOTAL Circles (Purple) -->
+<circle cx="55" cy="142" fill="#8b5cf6" r="4.5" stroke="#120e24" stroke-width="2"></circle>
+<circle cx="150" cy="126" fill="#8b5cf6" r="4.5" stroke="#120e24" stroke-width="2"></circle>
+<circle cx="245" cy="120" fill="#8b5cf6" r="4.5" stroke="#120e24" stroke-width="2"></circle>
+<circle cx="340" cy="102" fill="#8b5cf6" r="4.5" stroke="#120e24" stroke-width="2"></circle>
+<circle cx="435" cy="68" fill="#a78bfa" r="5" stroke="#120e24" stroke-width="2"></circle>
+<circle cx="530" cy="80" fill="#8b5cf6" r="4.5" stroke="#120e24" stroke-width="2"></circle>
+<circle cx="620" cy="95" fill="#8b5cf6" r="4.5" stroke="#120e24" stroke-width="2"></circle>
+<!-- ANSWERED Circles (Emerald) -->
+<circle cx="55" cy="168" fill="#10b981" r="4" stroke="#120e24" stroke-width="2"></circle>
+<circle cx="150" cy="148" fill="#10b981" r="4" stroke="#120e24" stroke-width="2"></circle>
+<circle cx="245" cy="144" fill="#10b981" r="4" stroke="#120e24" stroke-width="2"></circle>
+<circle cx="340" cy="134" fill="#10b981" r="4" stroke="#120e24" stroke-width="2"></circle>
+<circle cx="435" cy="96" fill="#34d399" r="4.5" stroke="#120e24" stroke-width="2"></circle>
+<circle cx="530" cy="110" fill="#10b981" r="4" stroke="#120e24" stroke-width="2"></circle>
+<circle cx="620" cy="126" fill="#10b981" r="4" stroke="#120e24" stroke-width="2"></circle>
+<!-- UNANSWERED Circles (Orange) -->
+<circle cx="55" cy="192" fill="#f97316" r="3.5" stroke="#120e24" stroke-width="2"></circle>
+<circle cx="150" cy="185" fill="#f97316" r="3.5" stroke="#120e24" stroke-width="2"></circle>
+<circle cx="245" cy="185" fill="#f97316" r="3.5" stroke="#120e24" stroke-width="2"></circle>
+<circle cx="340" cy="178" fill="#f97316" r="3.5" stroke="#120e24" stroke-width="2"></circle>
+<circle cx="435" cy="162" fill="#fb923c" r="4" stroke="#120e24" stroke-width="2"></circle>
+<circle cx="530" cy="175" fill="#f97316" r="3.5" stroke="#120e24" stroke-width="2"></circle>
+<circle cx="620" cy="182" fill="#f97316" r="3.5" stroke="#120e24" stroke-width="2"></circle>
+</svg>
+</div>
+</article>
+<!-- Chart Right: Category Distribution Donut Chart (Span 5 on desktop) -->
+<article class="lg:col-span-5 bg-[#120e24] border border-[#251c45] rounded-2xl p-5 sm:p-6 flex flex-col justify-between" data-purpose="category-distribution-chart">
+<!-- Header -->
+<div class="flex items-center space-x-2.5 mb-4">
+<div class="w-8 h-8 rounded-lg bg-indigo-950/60 text-indigo-400 border border-indigo-800/40 flex items-center justify-center">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+<path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+<path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+</svg>
+</div>
+<h2 class="text-base font-semibold text-white">Category Distribution</h2>
+</div>
+<!-- Donut & Legends Container -->
+<div class="flex flex-col sm:flex-row items-center justify-center sm:justify-around gap-6 py-2 my-auto">
+<!-- Donut Graphic -->
+<div class="relative w-44 h-44 flex items-center justify-center flex-shrink-0">
+<svg class="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
+<!-- Circumference = 2 * PI * r = 2 * 3.14159 * 38 = ~238.76 -->
+<!-- Background Ring -->
+<circle cx="50" cy="50" fill="none" r="38" stroke="#1b1535" stroke-width="14"></circle>
+<!-- Courses: 32% (76.4) - Purple -->
+<circle cx="50" cy="50" fill="none" r="38" stroke="#8b5cf6" stroke-dasharray="76.4 238.8" stroke-dashoffset="0" stroke-linecap="round" stroke-width="14"></circle>
+<!-- Certificates: 28% (66.8) - Emerald -->
+<circle cx="50" cy="50" fill="none" r="38" stroke="#10b981" stroke-dasharray="66.8 238.8" stroke-dashoffset="-77.5" stroke-linecap="round" stroke-width="14"></circle>
+<!-- Jobs: 24% (57.3) - Orange -->
+<circle cx="50" cy="50" fill="none" r="38" stroke="#f97316" stroke-dasharray="57.3 238.8" stroke-dashoffset="-145.5" stroke-linecap="round" stroke-width="14"></circle>
+<!-- Account: 16% (38.2) - Cyan/Blue -->
+<circle cx="50" cy="50" fill="none" r="38" stroke="#3b82f6" stroke-dasharray="38.2 238.8" stroke-dashoffset="-204" stroke-linecap="round" stroke-width="14"></circle>
+</svg>
+<!-- Center Donut Label -->
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+<span class="text-xl font-bold text-white tracking-tight leading-tight">1,248</span>
+<span class="text-[11px] font-medium text-[#8b85a6] uppercase tracking-wider">Total</span>
+</div>
+</div>
+<!-- Category Legend List -->
+<div class="space-y-3 w-full sm:w-auto min-w-[130px]">
+<div class="flex items-center justify-between space-x-3 text-xs">
+<span class="flex items-center space-x-2 text-slate-200">
+<span class="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm shadow-purple-500/50"></span>
+<span class="">Courses</span>
+</span>
+<span class="font-bold text-white">32%</span>
+</div>
+<div class="flex items-center justify-between space-x-3 text-xs">
+<span class="flex items-center space-x-2 text-slate-200">
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50"></span>
+<span class="">Certificates</span>
+</span>
+<span class="font-bold text-white">28%</span>
+</div>
+<div class="flex items-center justify-between space-x-3 text-xs">
+<span class="flex items-center space-x-2 text-slate-200">
+<span class="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-sm shadow-orange-500/50"></span>
+<span class="">Jobs</span>
+</span>
+<span class="font-bold text-white">24%</span>
+</div>
+<div class="flex items-center justify-between space-x-3 text-xs">
+<span class="flex items-center space-x-2 text-slate-200">
+<span class="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm shadow-blue-500/50"></span>
+<span class="">Account</span>
+</span>
+<span class="font-bold text-white">16%</span>
+</div>
+</div>
+</div>
+</article>
+</section>
+<!-- END: MiddleChartsRow -->
+<!-- BEGIN: BottomRowDetails -->
+<section aria-label="Recent Logs and Performance Summary" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Bottom Left: Recent Conversations Table (Span 8) -->
+<article class="lg:col-span-8 bg-[#120e24] border border-[#251c45] rounded-2xl p-5 sm:p-6" data-purpose="recent-conversations-table">
+<!-- Header -->
+<div class="flex items-center justify-between mb-5">
+<div class="flex items-center space-x-2.5">
+<div class="w-7 h-7 rounded-lg bg-purple-950/60 text-purple-400 border border-purple-800/40 flex items-center justify-center">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+</svg>
+</div>
+<h2 class="text-base font-semibold text-white">Recent Conversations</h2>
+</div>
+<a class="text-xs font-semibold text-purple-400 hover:text-purple-300 transition-colors flex items-center group" href="#">
+            View All <span class="ml-1 group-hover:translate-x-0.5 transition-transform">→</span>
+</a>
+</div>
+<!-- Responsive Table Container -->
+<div class="overflow-x-auto custom-scrollbar -mx-2 sm:mx-0">
+<table class="w-full text-left text-xs whitespace-nowrap min-w-[580px]">
+<thead>
+<tr class="text-[#8b85a6] border-b border-[#251c45]/70 pb-2">
+<th class="pb-3 px-2 font-medium" scope="col">User Question</th>
+<th class="pb-3 px-2 font-medium" scope="col">Category</th>
+<th class="pb-3 px-2 font-medium" scope="col">Status</th>
+<th class="pb-3 px-2 font-medium text-center" scope="col">Feedback</th>
+<th class="pb-3 px-2 font-medium text-right" scope="col">Date</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#1e1738]/50">
+<!-- Row 1 -->
+<tr class="hover:bg-[#181333]/50 transition-colors">
+<td class="py-3.5 px-2 font-medium text-slate-100 truncate max-w-[210px]">
+                  How can I enroll in a course?
+                </td>
+<td class="py-3.5 px-2">
+<span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-purple-950 text-purple-300 border border-purple-700/60">
+                    Courses
+                  </span>
+</td>
+<td class="py-3.5 px-2">
+<span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-950/60 text-emerald-400 border border-emerald-600/50">
+                    Answered
+                  </span>
+</td>
+<td class="py-3.5 px-2 text-center">
+<span class="inline-flex text-emerald-400">
+<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+<path d="M2 20h2V8H2v12zm20-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L13.17 0 7.59 5.59C7.22 5.95 7 6.45 7 7v11c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"></path>
+</svg>
+</span>
+</td>
+<td class="py-3.5 px-2 text-right text-[#8b85a6]">Oct 31, 2026</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-[#181333]/50 transition-colors">
+<td class="py-3.5 px-2 font-medium text-slate-100 truncate max-w-[210px]">
+                  How to download certificate?
+                </td>
+<td class="py-3.5 px-2">
+<span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-cyan-950 text-cyan-300 border border-cyan-700/60">
+                    Certificates
+                  </span>
+</td>
+<td class="py-3.5 px-2">
+<span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-950/60 text-emerald-400 border border-emerald-600/50">
+                    Answered
+                  </span>
+</td>
+<td class="py-3.5 px-2 text-center">
+<span class="inline-flex text-emerald-400">
+<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+<path d="M2 20h2V8H2v12zm20-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L13.17 0 7.59 5.59C7.22 5.95 7 6.45 7 7v11c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"></path>
+</svg>
+</span>
+</td>
+<td class="py-3.5 px-2 text-right text-[#8b85a6]">Oct 30, 2026</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-[#181333]/50 transition-colors">
+<td class="py-3.5 px-2 font-medium text-slate-100 truncate max-w-[210px]">
+                  Is there a job opening?
+                </td>
+<td class="py-3.5 px-2">
+<span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-orange-950 text-orange-300 border border-orange-700/60">
+                    Jobs
+                  </span>
+</td>
+<td class="py-3.5 px-2">
+<span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-950/60 text-amber-400 border border-amber-600/50">
+                    Unclear
+                  </span>
+</td>
+<td class="py-3.5 px-2 text-center">
+<span class="inline-flex text-rose-400">
+<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+<path d="M22 4h-2v12h2V4zm-4 0H9c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 24l5.58-5.59c.37-.36.59-.86.59-1.41V6c0-1.1-.9-2-2-2z"></path>
+</svg>
+</span>
+</td>
+<td class="py-3.5 px-2 text-right text-[#8b85a6]">Oct 29, 2026</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-[#181333]/50 transition-colors">
+<td class="py-3.5 px-2 font-medium text-slate-100 truncate max-w-[210px]">
+                  How do I reset my password?
+                </td>
+<td class="py-3.5 px-2">
+<span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-950 text-blue-300 border border-blue-700/60">
+                    Account
+                  </span>
+</td>
+<td class="py-3.5 px-2">
+<span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-950/60 text-emerald-400 border border-emerald-600/50">
+                    Answered
+                  </span>
+</td>
+<td class="py-3.5 px-2 text-center">
+<span class="inline-flex text-emerald-400">
+<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+<path d="M2 20h2V8H2v12zm20-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L13.17 0 7.59 5.59C7.22 5.95 7 6.45 7 7v11c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"></path>
+</svg>
+</span>
+</td>
+<td class="py-3.5 px-2 text-right text-[#8b85a6]">Oct 28, 2026</td>
+</tr>
+</tbody>
+</table>
+</div>
+</article>
+<!-- Bottom Right: FAQs Performing Well Card (Span 4) -->
+<article class="lg:col-span-4 rounded-2xl p-6 relative overflow-hidden bg-gradient-to-br from-[#1b123d] via-[#150f2f] to-[#120d29] border border-purple-900/40 shadow-xl flex flex-col justify-between" data-purpose="faq-performance-card">
+<!-- Glowing Top Circle Icon -->
+<div class="flex items-center justify-between mb-4">
+<div class="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-lg shadow-emerald-500/10">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24">
+<polyline points="20 6 9 17 4 12"></polyline>
+</svg>
+</div>
+<!-- Stylized 3D-effect Vertical Bar Graph Illustration -->
+<div class="flex items-end space-x-1.5 opacity-80 pr-1">
+<div class="w-2.5 h-6 bg-gradient-to-t from-purple-800 to-purple-600 rounded-t-sm"></div>
+<div class="w-2.5 h-10 bg-gradient-to-t from-purple-700 to-purple-500 rounded-t-sm"></div>
+<div class="w-2.5 h-14 bg-gradient-to-t from-purple-600 to-purple-400 rounded-t-sm"></div>
+<div class="w-2.5 h-8 bg-gradient-to-t from-purple-800 to-purple-500 rounded-t-sm"></div>
+</div>
+</div>
+<!-- Body Content -->
+<div class="space-y-1.5 my-2">
+<h3 class="text-base sm:text-lg font-bold text-white tracking-tight">FAQs Performing Well!</h3>
+<p class="text-xs sm:text-sm text-[#8b85a6] leading-relaxed max-w-xs">
+            Your assistant is answering <span class="text-emerald-400 font-semibold">98%</span> of questions correctly.
+          </p>
+</div>
+<!-- Action CTA Button -->
+<div class="mt-5">
+<button class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-4 py-2 rounded-xl bg-[#0e0921]/90 hover:bg-[#1a123d] border border-purple-800/50 text-xs font-semibold text-purple-200 transition-all group" type="button">
+<span class="">View Details</span>
+<span class="group-hover:translate-x-1 transition-transform">→</span>
+</button>
+</div>
+<!-- Subtle Ambient Background Light -->
+<div class="absolute -bottom-10 -right-10 w-36 h-36 bg-purple-600/10 rounded-full blur-2xl pointer-events-none"></div>
+</article>
+</section>
+<!-- END: BottomRowDetails -->
+</main>
+<!-- END: MainContent -->
+<!-- BEGIN: InteractiveScripts -->
+<script data-purpose="mobile-nav-toggle">
+    // Handle mobile hamburger menu toggle
+    const mobileBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const hamburgerIcon = document.getElementById('hamburgerIcon');
+    const closeIcon = document.getElementById('closeIcon');
+
+    if (mobileBtn && mobileMenu) {
+      mobileBtn.addEventListener('click', () => {
+        const isExpanded = !mobileMenu.classList.contains('hidden');
+        if (isExpanded) {
+          mobileMenu.classList.add('hidden');
+          hamburgerIcon.classList.remove('hidden');
+          closeIcon.classList.add('hidden');
+        } else {
+          mobileMenu.classList.remove('hidden');
+          hamburgerIcon.classList.add('hidden');
+          closeIcon.classList.remove('dropdown', 'hidden');
+        }
+      });
+    }
+  </script>
+<script data-purpose="time-range-switcher">
+    // Interactive 7D / 30D / 90D Switcher
+    const timeButtons = document.querySelectorAll('.time-btn');
+    timeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        timeButtons.forEach(b => {
+          b.classList.remove('bg-purple-600', 'text-white', 'shadow-sm');
+          b.classList.add('text-[#8b85a6]');
+        });
+        btn.classList.add('bg-purple-600', 'text-white', 'shadow-sm');
+        btn.classList.remove('text-[#8b85a6]');
+      });
+    });
+  </script>
+<!-- END: InteractiveScripts -->
+
+
+
+
+
+
+</body></html>

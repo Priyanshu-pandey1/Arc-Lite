@@ -1,0 +1,592 @@
+<!DOCTYPE html><html class="h-full" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>AI Chat Assistant</title>
+<!-- Tailwind CSS CDN with Forms & Container Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            app: {
+              bg: '#080612',
+              surface: '#0f0a21',
+              card: '#160f2e',
+              border: '#231846',
+              input: '#181232',
+              hover: '#241a47',
+              pill: '#1e173a',
+              accent: '#7c3aed',
+              accentHover: '#6d28d9',
+              muted: '#94a3b8',
+              text: '#f8fafc'
+            }
+          }
+        }
+      }
+    }
+  </script>
+<!-- Custom Scrollbar & Utility Styles -->
+<style data-purpose="custom-styling">
+    /* Custom dark scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #080612;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #251b47;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3c2c6e;
+    }
+    
+    /* Animation for simulated AI response appearance */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-message {
+      animation: fadeIn 0.25s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="h-full bg-app-bg text-app-text font-sans antialiased overflow-hidden flex flex-col">
+<!-- BEGIN: MainHeader -->
+<header class="relative z-30 flex items-center justify-between px-4 lg:px-6 h-14 bg-app-bg border-b border-app-border shrink-0 select-none" data-purpose="application-header">
+<!-- Left: Brand Logo & Desktop Nav -->
+<div class="flex items-center space-x-6">
+<!-- Mobile Sidebar Toggle -->
+<button aria-label="Open chat history sidebar" class="lg:hidden p-1.5 text-app-muted hover:text-white rounded-lg hover:bg-app-hover transition-colors" id="mobileSidebarOpenBtn" type="button">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M4 6h16M4 12h16M4 18h7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<!-- Logo -->
+<a class="flex items-center space-x-2 text-white font-semibold tracking-tight text-lg group" href="#">
+<div class="w-7 h-7 rounded-full bg-gradient-to-tr from-violet-600 via-indigo-500 to-purple-400 p-[1.5px] flex items-center justify-center">
+<div class="w-full h-full bg-app-bg rounded-full flex items-center justify-center">
+<svg class="w-4 h-4 text-purple-400 group-hover:rotate-12 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24">
+<path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm1 14.93V18a1 1 0 0 1-2 0v-1.07A6.01 6.01 0 0 1 6.07 12H5a1 1 0 0 1 0-2h1.07A6.01 6.01 0 0 1 11 4.93V4a1 1 0 0 1 2 0v.93A6.01 6.01 0 0 1 17.93 10H19a1 1 0 0 1 0 2h-1.07A6.01 6.01 0 0 1 13 16.93ZM12 7a5 5 0 1 0 5 5 5.006 5.006 0 0 0-5-5Z"></path>
+</svg>
+</div>
+</div>
+<span class="hidden sm:inline font-bold tracking-wide">ArcLite</span>
+</a>
+<!-- Desktop Navigation items (Exactly 3) -->
+<nav class="hidden md:flex items-center space-x-1 lg:space-x-2">
+<a class="px-3 py-1.5 text-sm font-medium text-white rounded-lg bg-app-card/60 transition-colors" href="#">Chat</a>
+<a class="px-3 py-1.5 text-sm font-medium text-app-muted hover:text-white rounded-lg hover:bg-app-hover/50 transition-colors" href="#">FAQ Management</a>
+<a class="px-3 py-1.5 text-sm font-medium text-app-muted hover:text-white rounded-lg hover:bg-app-hover/50 transition-colors" href="#">Analytics Dashboard</a>
+</nav>
+</div>
+<!-- Right Controls: Pricing, Theme, Login & Hamburger Menu -->
+<div class="flex items-center space-x-2 sm:space-x-3">
+<!-- Pricing Pill Button -->
+<!-- Theme / Dark icon -->
+<!-- Login link / trigger -->
+<button class="px-2.5 py-1 text-sm font-medium text-app-muted hover:text-white transition-colors cursor-pointer" id="headerLoginBtn" type="button">
+        Login
+      </button>
+<!-- Three-Line Hamburger Button -->
+<div class="relative">
+<button aria-expanded="false" aria-label="Toggle primary menu" class="p-1.5 text-app-muted hover:text-white rounded-lg hover:bg-app-hover transition-colors" id="hamburgerBtn" type="button">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<!-- Dropdown Menu (Contains exclusively 3 sections) -->
+<div class="hidden absolute right-0 mt-2 w-52 rounded-xl bg-app-card border border-app-border shadow-xl shadow-black/60 py-2 z-50" id="hamburgerDropdown">
+<a class="flex items-center px-4 py-2.5 text-sm text-white hover:bg-app-hover transition-colors" href="#">
+<span class="w-2 h-2 rounded-full bg-violet-400 mr-2.5"></span>
+            Chat
+          </a>
+<a class="flex items-center px-4 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-app-hover transition-colors" href="#">
+<span class="w-2 h-2 rounded-full bg-slate-600 mr-2.5"></span>
+            FAQ Management
+          </a>
+<a class="flex items-center px-4 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-app-hover transition-colors" href="#">
+<span class="w-2 h-2 rounded-full bg-slate-600 mr-2.5"></span>
+            Analytics Dashboard
+          </a>
+</div>
+</div>
+</div>
+</header>
+<!-- END: MainHeader -->
+<!-- BEGIN: ApplicationBody -->
+<div class="relative flex flex-1 h-[calc(100vh-3.5rem)] overflow-hidden">
+<!-- Mobile Overlay Backdrop -->
+<div class="fixed inset-0 bg-black/70 z-40 lg:hidden hidden transition-opacity" id="mobileBackdrop"></div>
+<!-- BEGIN: LeftSidebar -->
+<aside class="fixed inset-y-0 left-0 top-14 lg:top-0 lg:static z-40 w-72 bg-app-surface border-r border-app-border flex flex-col justify-between transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-in-out" data-purpose="chat-history-sidebar" id="sidebar">
+<!-- Top Section: New Chat & Search -->
+<div class="p-3 space-x-0 space-y-3">
+<!-- New Chat Button & Close Bar -->
+<div class="flex items-center justify-between gap-2">
+<button class="flex-1 flex items-center justify-center space-x-2 py-2 px-3 text-sm font-medium text-white bg-app-card hover:bg-app-hover border border-app-border rounded-xl transition-colors" id="newChatBtn" type="button">
+<svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="">New Chat</span>
+</button>
+<!-- Mobile Sidebar Close Button -->
+<button aria-label="Close sidebar" class="lg:hidden p-2 text-app-muted hover:text-white rounded-lg hover:bg-app-hover" id="mobileSidebarCloseBtn" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+<!-- Search Bar -->
+<div class="relative">
+<input class="w-full bg-app-input border border-app-border text-xs rounded-lg py-2 pl-3 pr-8 text-white placeholder-app-muted focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors" id="chatSearchInput" placeholder="Search chats..." type="text">
+<div class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none">
+<svg class="w-3.5 h-3.5 text-app-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<!-- Chat History List -->
+<div class="pt-2">
+<p class="px-2 text-xs font-semibold text-app-muted uppercase tracking-wider mb-1.5">Today</p>
+<div class="space-y-1" id="chatHistoryContainer"><div class="relative group flex items-center justify-between rounded-lg bg-app-card/80 hover:bg-app-hover border border-transparent hover:border-app-border transition-colors px-3 py-2 text-xs text-slate-200" id="chatItem-1"><button class="flex-1 text-left truncate flex items-center gap-1.5 focus:outline-none" onclick="const p = this.querySelector('.pin-indicator');" type="button"><svg class="pin-icon w-3 h-3 text-purple-400 hidden shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"></path></svg><span class="chat-title truncate">Simple Greeting and Introduction</span></button><button aria-label="More options" class="p-1 text-app-muted hover:text-white rounded transition-opacity opacity-70 group-hover:opacity-100 focus:opacity-100" onclick="event.stopPropagation(); const m = document.getElementById('chatOptionsDropdown-1'); const isHidden = m.classList.contains('hidden'); document.querySelectorAll('.chat-item-menu').forEach(el =&gt; el.classList.add('hidden')); if(isHidden) m.classList.remove('hidden');" type="button"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg></button><div class="chat-item-menu hidden absolute right-2 top-8 z-50 w-36 rounded-lg bg-[#160f2e] border border-app-border shadow-xl py-1 text-xs text-slate-200" id="chatOptionsDropdown-1"><button class="w-full flex items-center px-3 py-1.5 hover:bg-app-hover text-left transition-colors gap-2" onclick="event.stopPropagation(); const item = document.getElementById('chatItem-1'); const pinIcon = item.querySelector('.pin-icon'); const pinText = this.querySelector('.pin-label'); const isPinned = !pinIcon.classList.contains('hidden'); if(isPinned){ pinIcon.classList.add('hidden'); pinText.textContent = 'Pin'; } else { pinIcon.classList.remove('hidden'); pinText.textContent = 'Unpin'; item.parentElement.prepend(item); } document.getElementById('chatOptionsDropdown-1').classList.add('hidden');" type="button"><svg class="w-3 h-3 text-app-muted" fill="currentColor" viewBox="0 0 24 24"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"></path></svg><span class="pin-label">Pin</span></button><button class="w-full flex items-center px-3 py-1.5 hover:bg-app-hover text-left transition-colors gap-2" onclick="event.stopPropagation(); const titleSpan = document.getElementById('chatItem-1').querySelector('.chat-title'); const current = titleSpan.textContent; const next = prompt('Rename conversation:', current); if(next &amp;&amp; next.trim()){ titleSpan.textContent = next.trim(); } document.getElementById('chatOptionsDropdown-1').classList.add('hidden');" type="button"><svg class="w-3 h-3 text-app-muted" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg><span class="">Rename</span></button><button class="w-full flex items-center px-3 py-1.5 hover:bg-app-hover text-left transition-colors gap-2 text-rose-400 hover:text-rose-300" onclick="event.stopPropagation(); if(confirm('Delete this conversation?')){ document.getElementById('chatItem-1').remove(); } else { document.getElementById('chatOptionsDropdown-1').classList.add('hidden'); }" type="button"><svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg><span class="">Delete</span></button></div></div></div>
+</div>
+</div>
+<!-- Bottom Actions: Pro Banner & Delete History -->
+<div class="p-3 border-t border-app-border space-y-2">
+<!-- Upgrade Card -->
+<!-- Delete History Button -->
+<button class="w-full py-2 text-xs font-medium text-slate-300 hover:text-white bg-app-card hover:bg-app-hover border border-app-border rounded-xl transition-colors text-center" id="deleteHistoryBtn" type="button">
+          Delete Chat History
+        </button>
+</div>
+</aside>
+<!-- END: LeftSidebar -->
+<!-- BEGIN: MainChatContent -->
+<main class="flex-1 flex flex-col h-full bg-app-bg overflow-hidden relative" data-purpose="chat-viewport">
+<!-- Scrollable Message Stream Container -->
+<div class="flex-1 overflow-y-auto px-4 lg:px-8 py-6 flex flex-col justify-between" id="scrollViewport">
+<!-- INITIAL STATE (Welcome / Hero UI) -->
+<div class="m-auto w-full max-w-2xl py-12 flex flex-col items-center text-center" id="welcomeState">
+<!-- Hero Title & Tagline -->
+<div class="flex flex-col md:flex-row items-center justify-center gap-4 mb-8 text-center md:text-left">
+<h1 class="text-4xl sm:text-5xl font-extrabold text-white tracking-tight">Arc Lite</h1>
+<div class="hidden md:block w-px h-10 bg-app-border"></div>
+<p class="text-xs sm:text-sm text-app-muted max-w-xs sm:max-w-sm">Your AI-powered FAQ assistant for ArchintX. Ask questions about courses, certificates, jobs, and your account. Get answers from our FAQ knowledge base.</p>
+</div>
+<!-- Feature & Model Preset Chips -->
+<div class="flex flex-col items-center justify-center gap-2 max-w-xl mb-4 w-full select-none"><div class="flex flex-wrap items-center justify-center gap-2"><span class="px-3 py-1.5 rounded-full text-xs font-medium bg-app-surface border border-app-border text-slate-200">Courses</span><span class="px-3 py-1.5 rounded-full text-xs font-medium bg-app-surface border border-app-border text-slate-200">Certificates</span><span class="px-3 py-1.5 rounded-full text-xs font-medium bg-app-surface border border-app-border text-slate-200">Jobs</span><span class="px-3 py-1.5 rounded-full text-xs font-medium bg-app-surface border border-app-border text-slate-200">Account</span></div><div class="flex flex-wrap items-center justify-center gap-2"><span class="px-3 py-1.5 rounded-full text-xs font-medium bg-app-surface border border-app-border text-slate-200">FAQ Assistant</span><span class="px-3 py-1.5 rounded-full text-xs font-medium bg-app-surface border border-app-border text-slate-200">Verified FAQs</span><span class="px-3 py-1.5 rounded-full text-xs font-medium bg-app-surface border border-app-border text-slate-200">Feedback Enabled</span></div></div>
+</div>
+<!-- CONVERSATION STATE (Messages container) -->
+<div class="hidden w-full max-w-3xl mx-auto space-y-6 pb-4" id="conversationStream">
+<!-- Default loaded message pair matching Screenshot 2 -->
+<div class="flex flex-col items-end space-y-1">
+<div class="px-4 py-2 bg-app-pill text-white text-sm rounded-2xl rounded-tr-sm max-w-[80%] break-words">
+              hi
+            </div>
+<div class="flex items-center space-x-2 text-app-muted pr-1 pt-0.5">
+<button class="hover:text-white p-1 transition-colors" title="Retry">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="hover:text-white p-1 transition-colors" title="Delete">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+</div>
+<div class="flex flex-col items-start space-y-1">
+<div class="text-white text-sm sm:text-base font-medium max-w-[90%]">
+              Hi! How can I help?
+            </div>
+<div class="flex items-center space-x-2.5 text-app-muted pt-1">
+<button class="hover:text-white p-1 transition-colors" title="Copy">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="hover:text-white p-1 transition-colors" title="Details">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h14" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="hover:text-white p-1 transition-colors" title="Delete">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- BEGIN: BottomPromptInputBar -->
+<div class="w-full max-w-3xl mx-auto px-4 pb-3 pt-2" data-purpose="chat-input-container">
+<form class="relative flex items-center bg-app-input border border-app-border rounded-full px-2 py-1.5 focus-within:border-violet-600 focus-within:ring-1 focus-within:ring-violet-600 transition-all shadow-lg" id="chatForm">
+<!-- Add/Plus Attachment Button -->
+<button aria-label="Add attachment" class="p-2 text-slate-300 hover:text-white rounded-full hover:bg-app-hover transition-colors shrink-0" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<!-- Text Input Field -->
+<input autocomplete="off" class="flex-1 bg-transparent border-0 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-0 px-2 py-1" id="promptInput" placeholder="Message AI Chat..." type="text">
+<!-- Right Action Controls inside Input -->
+<div class="flex items-center space-x-1 shrink-0">
+<!-- Model Dropdown Pill -->
+<button class="hidden sm:flex items-center space-x-1.5 px-3 py-1 bg-app-card hover:bg-app-hover text-slate-200 text-xs font-medium rounded-full border border-app-border/80 transition-colors" type="button">
+<span class="">Standard</span>
+<svg class="w-3 h-3 text-app-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<!-- Microphone Voice Input Button -->
+<button aria-label="Voice input" class="p-2 text-slate-300 hover:text-white rounded-full hover:bg-app-hover transition-colors" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<!-- Send Message Button -->
+<button aria-label="Send message" class="w-8 h-8 rounded-full bg-violet-600 hover:bg-violet-500 text-white flex items-center justify-center transition-colors focus:ring-2 focus:ring-violet-400" id="sendBtn" type="submit">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M5 10l7-7m0 0l7 7m-7-7v18" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+</svg>
+</button>
+</div>
+</form>
+<!-- Terms & Disclaimer Footer -->
+<p class="text-center text-[10px] sm:text-[11px] text-app-muted/80 mt-2 px-2">
+          AI Chat can make mistakes. By messaging AI Chat, you agree to our 
+          <a class="underline hover:text-white" href="#">Terms of Service</a>, and acknowledge our 
+          <a class="underline hover:text-white" href="#">Privacy Policy</a>.
+        </p>
+</div>
+<!-- END: BottomPromptInputBar -->
+</main>
+<!-- END: MainChatContent -->
+</div>
+<!-- END: ApplicationBody -->
+<!-- BEGIN: StaffAuthModal -->
+<div aria-modal="true" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto" id="authModal" role="dialog">
+<!-- Subtle dark backdrop overlay -->
+<div class="fixed inset-0 bg-[#04020a]/80 backdrop-blur-[3px] transition-opacity" id="modalBackdrop"></div>
+<!-- Modal Container Card -->
+<div class="relative w-full max-w-[430px] rounded-2xl bg-[#0e0921] border border-[#231846] shadow-2xl shadow-purple-950/40 p-6 sm:p-8 z-10 my-auto text-white">
+<!-- Close Button (×) -->
+<button aria-label="Close modal" class="absolute top-5 right-5 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-app-hover/60 transition-colors focus:outline-none" id="closeModalBtn" type="button">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+<path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<!-- Modal Header -->
+<div class="text-center mb-6 pt-1">
+<h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-2" id="modalTitle">Staff Login</h2>
+<p class="text-xs sm:text-sm text-slate-400" id="modalSubtitle">Sign in to access the Arc Lite administration panel.</p>
+</div>
+<!-- Segmented Tabs: Login & Sign Up (Hidden when in Forgot Password view) -->
+
+<!-- VIEW 1: LOGIN VIEW -->
+<form class="space-y-4" id="loginView" onsubmit="event.preventDefault();">
+<!-- Email input -->
+<div class="relative flex items-center bg-[#150f2e] border border-[#241a4a] rounded-xl px-3.5 py-2.5 focus-within:border-violet-500 focus-within:ring-1 focus-within:ring-violet-500 transition-colors">
+<div class="text-slate-400 mr-3 shrink-0">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+<path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div class="w-px h-6 bg-[#2a1e54] mr-3 shrink-0"></div>
+<div class="flex-1 min-w-0">
+<label class="block text-[10px] text-slate-400 font-medium leading-none mb-1">Email Address</label>
+<input autocomplete="email" class="w-full bg-transparent border-0 p-0 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-0" placeholder="Enter your registered email address" required="" type="email">
+</div>
+</div>
+<!-- Password input -->
+<div class="relative flex items-center bg-[#150f2e] border border-[#241a4a] rounded-xl px-3.5 py-2.5 focus-within:border-violet-500 focus-within:ring-1 focus-within:ring-violet-500 transition-colors">
+<div class="text-slate-400 mr-3 shrink-0">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+<rect height="11" rx="2" ry="2" width="18" x="3" y="11"></rect>
+<path d="M7 11V7a5 5 0 0110 0v4" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div class="w-px h-6 bg-[#2a1e54] mr-3 shrink-0"></div>
+<div class="flex-1 min-w-0">
+<label class="block text-[10px] text-slate-400 font-medium leading-none mb-1">Enter Password</label>
+<input autocomplete="current-password" class="w-full bg-transparent border-0 p-0 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-0" placeholder="Enter your password" required="" type="password">
+</div>
+</div>
+<!-- Submit Button -->
+<div class="pt-2">
+<button class="w-full py-3 px-4 rounded-xl text-sm font-semibold text-white bg-[#6d28d9] hover:bg-[#7c3aed] active:bg-[#5b21b6] transition-colors shadow-lg shadow-purple-950/60 focus:outline-none focus:ring-2 focus:ring-violet-400" type="submit">Sign In</button>
+</div>
+<!-- Forgot Password Link -->
+<div class="text-center pt-2">
+<span class="text-xs text-slate-400">Forgot password? </span>
+<button class="text-xs text-[#a855f7] hover:text-[#c084fc] font-medium transition-colors cursor-pointer focus:outline-none underline-offset-2 hover:underline" id="toForgotPasswordBtn" type="button">
+          Click here to reset
+        </button>
+</div>
+</form>
+<!-- VIEW 2: SIGN UP VIEW -->
+
+<!-- VIEW 3: FORGOT PASSWORD VIEW -->
+<form class="space-y-4 hidden" id="forgotPasswordView" onsubmit="event.preventDefault();">
+<!-- Email input -->
+<div class="relative flex items-center bg-[#150f2e] border border-[#241a4a] rounded-xl px-3.5 py-2.5 focus-within:border-violet-500 focus-within:ring-1 focus-within:ring-violet-500 transition-colors">
+<div class="text-slate-400 mr-3 shrink-0">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+<path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div class="w-px h-6 bg-[#2a1e54] mr-3 shrink-0"></div>
+<div class="flex-1 min-w-0">
+<label class="block text-[10px] text-slate-400 font-medium leading-none mb-1">Email Address</label>
+<input autocomplete="email" class="w-full bg-transparent border-0 p-0 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-0" placeholder="Enter your registered email address" required="" type="email">
+</div>
+</div>
+<!-- Submit Button -->
+<div class="pt-2">
+<button class="w-full py-3 px-4 rounded-xl text-sm font-semibold text-white bg-[#6d28d9] hover:bg-[#7c3aed] active:bg-[#5b21b6] transition-colors shadow-lg shadow-purple-950/60 focus:outline-none focus:ring-2 focus:ring-violet-400" type="submit">
+          Send Reset Link
+        </button>
+</div>
+<!-- Back to Login Link -->
+<div class="text-center pt-2">
+<button class="text-xs text-[#a855f7] hover:text-[#c084fc] font-medium transition-colors cursor-pointer focus:outline-none inline-flex items-center gap-1.5" id="backToLoginBtn" type="button">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M10 19l-7-7m0 0l7-7m-7 7h18" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+          Back to Login
+        </button>
+</div>
+</form>
+</div>
+</div>
+<!-- END: StaffAuthModal -->
+<!-- BEGIN: ScriptHandlers -->
+<script data-purpose="application-logic">
+    // DOM Elements
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const hamburgerDropdown = document.getElementById('hamburgerDropdown');
+    const mobileSidebarOpenBtn = document.getElementById('mobileSidebarOpenBtn');
+    const mobileSidebarCloseBtn = document.getElementById('mobileSidebarCloseBtn');
+    const mobileBackdrop = document.getElementById('mobileBackdrop');
+    const sidebar = document.getElementById('sidebar');
+    const newChatBtn = document.getElementById('newChatBtn');
+    const welcomeState = document.getElementById('welcomeState');
+    const conversationStream = document.getElementById('conversationStream');
+    const chatForm = document.getElementById('chatForm');
+    const promptInput = document.getElementById('promptInput');
+    const scrollViewport = document.getElementById('scrollViewport');
+    const chatHistoryContainer = document.getElementById('chatHistoryContainer');
+    const deleteHistoryBtn = document.getElementById('deleteHistoryBtn');
+
+    // Auth Modal DOM Elements
+    const authModal = document.getElementById('authModal');
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const headerLoginBtn = document.getElementById('headerLoginBtn');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalSubtitle = document.getElementById('modalSubtitle');
+    const modalTabsContainer = document.getElementById('modalTabsContainer');
+    const tabLoginBtn = document.getElementById('tabLoginBtn');
+    const tabSignUpBtn = document.getElementById('tabSignUpBtn');
+    const loginView = document.getElementById('loginView');
+    const signUpView = document.getElementById('signUpView');
+    const forgotPasswordView = document.getElementById('forgotPasswordView');
+    const toForgotPasswordBtn = document.getElementById('toForgotPasswordBtn');
+    const backToLoginBtn = document.getElementById('backToLoginBtn');
+
+    // Modal view state management
+    function openModal() {
+      authModal.classList.remove('hidden');
+      authModal.classList.add('flex');
+    }
+
+    function closeModal() {
+      authModal.classList.add('hidden');
+      authModal.classList.remove('flex');
+    }
+
+    function showLoginTab() {
+      modalTabsContainer.classList.remove('hidden');
+      modalTitle.textContent = 'Staff Login';
+      modalSubtitle.textContent = 'Access your Arc Lite staff dashboard.';
+      
+      tabLoginBtn.className = 'flex-1 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 bg-[#261c4f] text-white shadow-sm';
+      tabSignUpBtn.className = 'flex-1 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 text-slate-400 hover:text-white';
+      
+      loginView.classList.remove('hidden');
+      signUpView.classList.add('hidden');
+      forgotPasswordView.classList.add('hidden');
+    }
+
+    function showSignUpTab() {
+      modalTabsContainer.classList.remove('hidden');
+      modalTitle.textContent = 'Staff Registration';
+      modalSubtitle.textContent = 'Access your Arc Lite staff dashboard.';
+      
+      tabSignUpBtn.className = 'flex-1 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 bg-[#261c4f] text-white shadow-sm';
+      tabLoginBtn.className = 'flex-1 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 text-slate-400 hover:text-white';
+      
+      loginView.classList.add('hidden');
+      signUpView.classList.remove('hidden');
+      forgotPasswordView.classList.add('hidden');
+    }
+
+    function showForgotPasswordView() {
+      modalTabsContainer.classList.add('hidden');
+      modalTitle.textContent = 'Reset Password';
+      modalSubtitle.textContent = 'Enter your registered staff email address to receive password reset instructions.';
+      
+      loginView.classList.add('hidden');
+      signUpView.classList.add('hidden');
+      forgotPasswordView.classList.remove('hidden');
+    }
+
+    // Modal event listeners
+    if (headerLoginBtn) {
+      headerLoginBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        showLoginTab();
+        openModal();
+      });
+    }
+
+    if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+    if (modalBackdrop) modalBackdrop.addEventListener('click', closeModal);
+
+    tabLoginBtn.addEventListener('click', showLoginTab);
+    tabSignUpBtn.addEventListener('click', showSignUpTab);
+    toForgotPasswordBtn.addEventListener('click', showForgotPasswordView);
+    backToLoginBtn.addEventListener('click', showLoginTab);
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !authModal.classList.contains('hidden')) {
+        closeModal();
+      }
+    });
+
+    // Hamburger Dropdown Toggle
+    hamburgerBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      hamburgerDropdown.classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!hamburgerDropdown.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+        hamburgerDropdown.classList.add('hidden');
+      }
+    });
+
+    // Mobile Sidebar Drawer Handlers
+    function openMobileSidebar() {
+      sidebar.classList.remove('-translate-x-full');
+      mobileBackdrop.classList.remove('hidden');
+    }
+
+    function closeMobileSidebar() {
+      sidebar.classList.add('-translate-x-full');
+      mobileBackdrop.classList.add('hidden');
+    }
+
+    if (mobileSidebarOpenBtn) mobileSidebarOpenBtn.addEventListener('click', openMobileSidebar);
+    if (mobileSidebarCloseBtn) mobileSidebarCloseBtn.addEventListener('click', closeMobileSidebar);
+    if (mobileBackdrop) mobileBackdrop.addEventListener('click', closeMobileSidebar);
+
+    // Click on preset chip sets input value and submits
+    document.querySelectorAll('.preset-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const text = chip.querySelector('span:first-of-type')?.innerText || chip.innerText;
+        promptInput.value = `Explore ${text.trim()}`;
+        promptInput.focus();
+      });
+    });
+
+    // Handle Message Submission
+    chatForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const message = promptInput.value.trim();
+      if (!message) return;
+
+      // Switch view from hero to conversation stream
+      welcomeState.classList.add('hidden');
+      conversationStream.classList.remove('hidden');
+
+      // Append User Message
+      const userMessageEl = document.createElement('div');
+      userMessageEl.className = 'flex flex-col items-end space-y-1 animate-message';
+      userMessageEl.innerHTML = `
+        <div class="px-4 py-2 bg-app-pill text-white text-sm rounded-2xl rounded-tr-sm max-w-[80%] break-words">
+          ${escapeHtml(message)}
+        </div>
+        <div class="flex items-center space-x-2 text-app-muted pr-1 pt-0.5">
+          <button title="Retry" class="hover:text-white p-1 transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          </button>
+          <button title="Delete" class="hover:text-white p-1 transition-colors delete-msg-btn">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        </div>
+      `;
+      conversationStream.appendChild(userMessageEl);
+
+      // Clear input field
+      promptInput.value = '';
+
+      // Scroll to bottom
+      scrollViewport.scrollTop = scrollViewport.scrollHeight;
+
+      // Simulate Bot Response after subtle delay
+      setTimeout(() => {
+        const botResponseEl = document.createElement('div');
+        botResponseEl.className = 'flex flex-col items-start space-y-1 animate-message';
+        botResponseEl.innerHTML = `
+          <div class="text-white text-sm sm:text-base font-medium max-w-[90%]">
+            I'm here to assist you with "${escapeHtml(message)}". Let me know what specific questions or tasks you'd like to explore!
+          </div>
+          <div class="flex items-center space-x-2.5 text-app-muted pt-1">
+            <button title="Copy" class="hover:text-white p-1 transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            </button>
+            <button title="Details" class="hover:text-white p-1 transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h10M4 18h14"/></svg>
+            </button>
+            <button title="Delete" class="hover:text-white p-1 transition-colors delete-msg-btn">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </div>
+        `;
+        conversationStream.appendChild(botResponseEl);
+        scrollViewport.scrollTop = scrollViewport.scrollHeight;
+      }, 400);
+    });
+
+    // New Chat Button Handler (Resets to welcome state)
+    newChatBtn.addEventListener('click', () => {
+      welcomeState.classList.remove('hidden');
+      conversationStream.classList.add('hidden');
+      promptInput.value = '';
+      promptInput.focus();
+      if (window.innerWidth < 1024) {
+        closeMobileSidebar();
+      }
+    });
+
+    // Delete Chat History Handler
+    deleteHistoryBtn.addEventListener('click', () => {
+      chatHistoryContainer.innerHTML = '<p class="px-3 py-2 text-xs text-app-muted italic">No chat history</p>';
+    });
+
+    // Helper: basic HTML sanitizer
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+    }
+  </script>
+<!-- END: ScriptHandlers -->
+
+
+</body></html>

@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-app-bg text-app-text font-sans antialiased overflow-hidden;
+  }
+}
+
+/* Custom dark scrollbar (matches Stitch design) */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #080612;
+}
+::-webkit-scrollbar-thumb {
+  background: #251b47;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3c2c6e;
+}
+
+/* Analytics Dashboard (from the Stitch design) */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #0d0a1a;
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #251c45;
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #3b2c6d;
+}
+
+.glow-purple {
+  filter: drop-shadow(0 0 10px rgba(124, 58, 237, 0.45));
+}
+.glow-emerald {
+  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.4));
+}
