@@ -356,6 +356,7 @@ B.Tech — Computer Science and Engineering
 Artificial Intelligence and Machine Learning
 
 - GitHub: [@Priyanshu-pandey1](https://github.com/Priyanshu-pandey1)
+- Linkedin: (http://linkedin.com/in/priyanshu-pandey-data/)
 
 ---
 
