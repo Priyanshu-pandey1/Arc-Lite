@@ -32,8 +32,6 @@ Arc Lite consists of three main application areas:
 | Component | Link |
 |---|---|
 | Public Application | [Open Arc Lite](https://arc-lite-umber.vercel.app/) |
-| Backend API | [Render Backend](https://arc-lite.onrender.com) |
-| API Health | [Check API Status](https://arc-lite.onrender.com/api/health) |
 | Source Code | [GitHub Repository](https://github.com/Priyanshu-pandey1/Arc-Lite) |
 
 ## Features
