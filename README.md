@@ -1,110 +1,111 @@
 # ◈ Arc Lite — AI-Powered FAQ Assistant
 
-**An intelligent FAQ assistant that provides relevant answers from a verified knowledge base — and refuses to guess when it doesn't know.**
+**An intelligent FAQ assistant built to retrieve reliable answers from a knowledge base — and refuse when it doesn't have enough confidence.**
 
 <p align="center">
-  <a href="https://arc-lite-umber.vercel.app/"><strong>Live Demo</strong></a>
-  &nbsp; • &nbsp;
+  <a href="https://arc-lite-umber.vercel.app/">Live Demo</a> ·
+  <a href="https://arc-lite.onrender.com/api/health">API Health</a> ·
+  <a href="https://github.com/Priyanshu-pandey1/Arc-Lite">Source Code</a>
 </p>
 
 ---
 
-## 📌 Overview
+## Overview
 
-Arc Lite is a full-stack AI-powered FAQ assistant designed to make information easier to access through natural-language questions.
+Arc Lite is a full-stack FAQ assistant that helps users find information through natural-language questions.
 
-Instead of relying on simple keyword matching or generating potentially incorrect answers, Arc Lite uses a machine-learning-based FAQ retrieval engine to identify relevant questions from a knowledge base.
+It uses a custom NLP-based retrieval engine to identify relevant FAQs instead of relying on simple keyword matching or generating unsupported answers.
 
-Its core principle is:
+Its core principle is simple:
 
-> **Answer when there is sufficient confidence. Refuse when there isn't.**
+**Answer when confidence is sufficient. Refuse when it isn't.**
 
-The application provides two main interfaces:
+The application provides two interfaces:
 
-- **Public Chat Interface:** Visitors can ask questions without creating an account, receive relevant FAQ answers, and provide feedback.
+- **Public Chat:** Visitors can ask questions without creating an account, receive FAQ answers, and submit feedback.
 - **Staff Dashboard:** Authorized staff can manage FAQs, monitor conversations, review analytics, and maintain the knowledge base.
 
-The project uses a Flask REST API, a React frontend, a TF-IDF-based retrieval engine, and PostgreSQL for persistent data storage.
+Built with React, Flask, Scikit-learn, and PostgreSQL, Arc Lite combines an interactive user experience with a confidence-based FAQ retrieval system.
 
-## 🚀 Live Demo
+> **Knowledge-base note:** The current FAQ entries are demonstration/sample content, not an official ArchintX knowledge base.
 
-| Component | Link |
+## Live Application
+
+| Service | URL |
 |---|---|
-| Public Application | https://arc-lite-umber.vercel.app/ |
-| GitHub Repository | https://github.com/Priyanshu-pandey1/Arc-Lite |
+| Public Application | [arc-lite-umber.vercel.app](https://arc-lite-umber.vercel.app/) |
+| Backend API | [arc-lite.onrender.com](https://arc-lite.onrender.com) |
+| API Health Check | [Check API Status](https://arc-lite.onrender.com/api/health) |
+| GitHub Repository | [Priyanshu-pandey1/Arc-Lite](https://github.com/Priyanshu-pandey1/Arc-Lite) |
 
-**Note:** The FAQ entries currently contain demonstration/sample content. They are not an official ArchintX knowledge base.
+## Key Features
 
-## ✨ Key Features
+### Public Chatbot
+- No-login FAQ chat interface.
+- Natural-language question handling.
+- Retrieval of relevant answers from the knowledge base.
+- Confidence-based refusal for unsupported questions.
+- Thumbs-up and thumbs-down feedback.
 
-### 1. Public FAQ Chatbot
-- No-login public chat interface.
-- Accepts natural-language questions.
-- Retrieves relevant answers from the FAQ knowledge base.
-- Provides a refusal response when confidence is insufficient.
-- Supports thumbs-up and thumbs-down feedback.
+### Anonymous Visitor History
+- Separate chat histories for different browser visitors.
+- Persistent conversation history.
+- Rename, pin, and delete conversations.
+- Visitor-level history isolation.
 
-### 2. Anonymous Visitor Chat History
-- Maintains separate chat histories for different browser visitors.
-- Supports conversation history management.
-- Allows visitors to rename, pin, and delete conversations.
-- Prevents one visitor's chat history from being displayed to another visitor.
-
-### 3. Staff Authentication
+### Staff Authentication
 - Dedicated staff login.
 - JWT-based authentication.
-- Password hashing for credential security.
-- Protected staff dashboard routes.
+- Password hashing.
+- Protected dashboard routes.
 
-### 4. FAQ Management
+### FAQ Management
 - Create and manage FAQ entries.
-- Organize FAQs into categories:
+- Organize FAQs into four categories:
   - Courses
   - Certificates
   - Jobs
   - Account
 - Manage FAQ status and verification information.
 
-### 5. Analytics Dashboard
+### Analytics Dashboard
 - Monitor chatbot activity.
 - Review conversation statistics.
 - Analyze FAQ categories and performance.
-- View user feedback and recent conversations.
+- View feedback and recent conversations.
 
-### 6. Conversation Management
-- Store chatbot conversations persistently.
-- Allow authorized staff to review conversation records.
-- Support conversation-level feedback and management.
+### Conversation Management
+- Persistent conversation records.
+- Staff access to conversation history.
+- Conversation-level feedback and management.
 
-## 🧠 AI Engine — How It Works
+## AI Engine
 
-The central component of Arc Lite is its custom FAQ retrieval and decision-making engine.
+The core of Arc Lite is a custom FAQ retrieval and decision-making engine built using traditional NLP and machine-learning techniques.
 
-It uses traditional Natural Language Processing (NLP) and machine-learning techniques to find the most relevant FAQ entry for a user's question.
+Rather than generating new answers, the engine identifies the most relevant FAQ and retrieves its stored answer.
 
 ### Retrieval Pipeline
 
-1. **Text Preprocessing:** Processes and normalizes incoming questions.
-2. **Text Vectorization:** Converts FAQ questions and user queries into numerical representations using TF-IDF.
-3. **Similarity Calculation:** Uses cosine similarity to measure how closely the query matches stored FAQ questions.
-4. **Phrase Matching:** Uses phrase-level matching to provide additional matching evidence.
-5. **Decision Engine:** Evaluates confidence, FAQ verification status, question relevance, and other decision conditions.
-6. **Response Builder:** Returns the stored FAQ answer or an appropriate refusal response.
+1. **Text Preprocessing** — Processes and normalizes incoming questions.
+2. **TF-IDF Vectorization** — Converts FAQ questions and user queries into numerical representations.
+3. **Cosine Similarity** — Measures similarity between the incoming query and stored FAQ questions.
+4. **Phrase Matching** — Provides additional matching evidence.
+5. **Decision Engine** — Evaluates confidence, FAQ verification status, question relevance, and other conditions.
+6. **Response Builder** — Returns the stored FAQ answer or an appropriate refusal response.
 
-### Technologies Used in the AI Engine
+### Core Techniques
 
 | Technique | Purpose |
 |---|---|
-| TF-IDF | Converts text into numerical feature vectors |
-| Word N-grams (1, 2) | Captures individual words and word combinations |
-| Character N-grams (2, 5) | Helps match variations in spelling and text |
-| Cosine Similarity | Measures similarity between user queries and FAQ questions |
+| TF-IDF | Numerical representation of text |
+| Word N-grams (1, 2) | Captures words and word combinations |
+| Character N-grams (2, 5) | Helps match spelling and text variations |
+| Cosine Similarity | Measures query-to-FAQ similarity |
 | Phrase Matching | Provides additional matching evidence |
 | Decision Engine | Determines whether a response is sufficiently reliable |
 
-### Confidence-Based Decision Making
-
-The engine uses confidence thresholds to determine its response:
+### Confidence-Based Decisions
 
 | Similarity Score | Decision |
 |---|---|
@@ -112,11 +113,11 @@ The engine uses confidence thresholds to determine its response:
 | ≥ 0.25 and < 0.50 | Unclear |
 | < 0.25 | Refuse |
 
-Additional decision checks handle conditions such as inactive FAQs, unverified entries, generic questions, and out-of-scope queries.
+Additional checks handle inactive FAQs, unverified entries, generic questions, and out-of-scope queries.
 
-**Important:** Arc Lite retrieves existing FAQ answers. It does not generate new answers using an LLM. Its refusal mechanism is designed to reduce unsupported or guessed responses.
+**Design principle:** Arc Lite retrieves approved stored FAQ answers rather than generating responses using an LLM. Its refusal mechanism is designed to reduce unsupported answers and guessing.
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```mermaid
 flowchart TD
@@ -139,14 +140,16 @@ flowchart TD
     K --> B
 ```
 
-### Application Architecture
+### Architecture Components
 
-- **Frontend:** Handles the public chatbot, staff authentication, FAQ management, and analytics dashboard.
-- **Backend:** Provides REST API endpoints, authentication, database operations, and application logic.
-- **AI Engine:** Performs FAQ retrieval, similarity scoring, and response decisions.
-- **Database:** Stores FAQs, staff information, conversations, visitor history, and feedback.
+| Component | Responsibility |
+|---|---|
+| Frontend | Chat interface, staff login, FAQ management, and analytics |
+| Backend | REST APIs, authentication, business logic, and database operations |
+| AI Engine | FAQ retrieval, similarity scoring, and response decisions |
+| Database | FAQs, staff records, conversations, visitor history, and feedback |
 
-## 🛠️ Tech Stack
+## Technology Stack
 
 | Layer | Technologies |
 |---|---|
@@ -162,9 +165,9 @@ flowchart TD
 | Backend Deployment | Render |
 | Version Control | Git, GitHub |
 
-## 🗄️ Database
+## Database
 
-Arc Lite uses PostgreSQL hosted on Neon for persistent application data.
+Arc Lite uses PostgreSQL hosted on Neon for persistent data storage.
 
 The database supports:
 
@@ -175,42 +178,38 @@ The database supports:
 - User feedback.
 - Analytics-related information.
 
-## 🧪 Testing and Quality Assurance
+## Testing & Quality Assurance
 
 Testing was performed across the AI engine, backend APIs, and frontend application.
 
-| Testing Area | Coverage |
+| Area | Testing Coverage |
 |---|---|
 | AI Engine | Matching, confidence decisions, refusal behaviour, and robustness |
 | Backend APIs | FAQ operations, conversations, visitor history, analytics, and authentication |
-| Regression Testing | Verification of existing functionality after changes |
+| Regression | Existing functionality after code changes |
 | Frontend | Linting and production build |
-| Browser Testing | Manual end-to-end functional verification |
-| Visitor Isolation | Verification of separate chat histories across visitors |
+| Browser Testing | Manual functional verification |
+| Visitor Isolation | Separate chat histories across visitors |
 
 ### Testing Summary
 
-- Approximately **230 scripted checks** across backend API and AI-engine test scripts.
-- AI evaluation using dedicated test cases and mixed-question evaluations.
+- Approximately **230 scripted checks** across backend API and AI-engine scripts.
+- Dedicated AI evaluation and mixed-question testing.
 - Frontend lint checks using Oxlint.
-- Successful production build verification.
+- Production build verification.
 - Manual browser testing of public and staff workflows.
 - Verification of visitor-history isolation and conversation management.
 
-**Testing note:** The scripted checks are primarily standalone Python scripts, not a unified pytest suite. Browser testing was manual rather than automated through Playwright or Cypress. A continuous integration pipeline is not currently included.
+**Testing transparency:** The scripted checks primarily use standalone Python scripts rather than a unified pytest suite. Browser testing was manual, not automated using Playwright or Cypress. A CI pipeline is not currently included.
 
-## ⚙️ Local Installation and Setup
-
-Follow these steps to run Arc Lite locally.
+## Local Installation
 
 ### Prerequisites
-
-Make sure you have installed:
 
 - Python 3.10 or later
 - Node.js and npm
 - Git
-- A PostgreSQL database
+- PostgreSQL database
 
 ### 1. Clone the Repository
 
@@ -221,30 +220,16 @@ cd Arc-Lite
 
 ### 2. Backend Setup
 
-Navigate to the backend directory:
-
-```bash
-cd backend
-```
-
-Create and activate a virtual environment:
-
 ```powershell
+cd backend
+
 python -m venv venv
 .\venv\Scripts\Activate.ps1
-```
 
-Install the dependencies:
-
-```bash
 pip install -r requirements.txt
 ```
 
-Create a `.env` file inside the backend directory and configure the required environment variables.
-
-### 3. Backend Environment Variables
-
-Configure the following variables using your own credentials:
+Create a `.env` file inside the backend directory:
 
 ```env
 DATABASE_URL=your_postgresql_connection_string
@@ -252,19 +237,15 @@ JWT_SECRET=your_secure_secret_key
 CORS_ORIGINS=http://localhost:5173
 ```
 
-Start the Flask backend using the project's configured application entry point.
+Start the Flask backend using the configured application entry point.
 
-### 4. Frontend Setup
+### 3. Frontend Setup
 
-Open a new terminal and navigate to the frontend directory:
+Open another terminal:
 
-```bash
+```powershell
 cd frontend
-```
 
-Install dependencies:
-
-```bash
 npm install
 ```
 
@@ -280,28 +261,28 @@ Start the development server:
 npm run dev
 ```
 
-The frontend will be available at the local development URL displayed by Vite.
+Vite will display the local frontend URL in the terminal.
 
-**Important:** Use your own PostgreSQL database credentials and a secure JWT secret. Never commit `.env` files, database credentials, or secret keys to GitHub. Check the detailed deployment documentation for the complete configuration.
+**Security:** Use your own database credentials and a secure JWT secret. Never commit `.env` files, passwords, or secret keys to GitHub.
 
-## ☁️ Deployment
+For detailed setup and deployment instructions, refer to the [Deployment Guide](references/project_documentation/11_Deployment_Guide.md).
 
-Arc Lite is deployed using the following services:
+## Deployment
+
+Arc Lite is deployed using three services:
 
 | Component | Platform |
 |---|---|
 | Frontend | Vercel |
 | Backend | Render |
-| PostgreSQL Database | Neon |
+| Database | Neon PostgreSQL |
 
-### Deployment Configuration
-
-- The React frontend is deployed on Vercel.
-- The Flask backend is hosted on Render using Gunicorn.
+- React frontend deployed on Vercel.
+- Flask backend hosted on Render using Gunicorn.
 - Neon PostgreSQL provides persistent database storage.
 - Environment variables configure database access, authentication, and frontend-backend communication.
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 Arc-Lite/
@@ -314,7 +295,6 @@ Arc-Lite/
 │   │   ├── preprocessing.py
 │   │   ├── response_builder.py
 │   │   └── vectorizer.py
-│   │
 │   ├── data/
 │   ├── tests/
 │   ├── app.py
@@ -330,37 +310,71 @@ Arc-Lite/
 │   ├── package.json
 │   └── vite.config.js
 │
+├── references/
+│   └── project_documentation/
+│       ├── 01_Project_Overview.md
+│       ├── 02_Complete_File_Structure.md
+│       ├── 03_System_Architecture.md
+│       ├── 04_Frontend_Deep_Dive.md
+│       ├── 05_Backend_Deep_Dive.md
+│       ├── 06_AI_Engine_Deep_Dive.md
+│       ├── 07_Database_Documentation.md
+│       ├── 08_API_Reference.md
+│       ├── 09_User_Flows.md
+│       ├── 10_Testing_and_QA.md
+│       ├── 11_Deployment_Guide.md
+│       ├── 12_Interview_Questions_and_Answers.md
+│       ├── 13_Project_Presentation_Script.md
+│       └── 14_Technical_Glossary.md
 │
 └── README.md
 ```
 
-*The structure above highlights the main project components; it is not an exhaustive listing of every file.*
+*This is a simplified representation of the main project structure.*
 
+## Technical Documentation
 
-## 🔮 Future Improvements
+The repository includes 14 detailed documents covering the implementation and architecture of Arc Lite.
 
-Potential areas for further development include:
+| # | Documentation |
+|---|---|
+| 01 | [Project Overview](references/project_documentation/01_Project_Overview.md) |
+| 02 | [Complete File Structure](references/project_documentation/02_Complete_File_Structure.md) |
+| 03 | [System Architecture](references/project_documentation/03_System_Architecture.md) |
+| 04 | [Frontend Deep Dive](references/project_documentation/04_Frontend_Deep_Dive.md) |
+| 05 | [Backend Deep Dive](references/project_documentation/05_Backend_Deep_Dive.md) |
+| 06 | [AI Engine Deep Dive](references/project_documentation/06_AI_Engine_Deep_Dive.md) |
+| 07 | [Database Documentation](references/project_documentation/07_Database_Documentation.md) |
+| 08 | [API Reference](references/project_documentation/08_API_Reference.md) |
+| 09 | [User Flows](references/project_documentation/09_User_Flows.md) |
+| 10 | [Testing & QA](references/project_documentation/10_Testing_and_QA.md) |
+| 11 | [Deployment Guide](references/project_documentation/11_Deployment_Guide.md) |
+| 12 | [Interview Questions & Answers](references/project_documentation/12_Interview_Questions_and_Answers.md) |
+| 13 | [Project Presentation Script](references/project_documentation/13_Project_Presentation_Script.md) |
+| 14 | [Technical Glossary](references/project_documentation/14_Technical_Glossary.md) |
+
+## Future Improvements
 
 - Automated browser-based testing.
 - Continuous integration and deployment workflows.
 - Improved FAQ ranking and retrieval evaluation.
 - Multilingual FAQ support.
-- More advanced semantic retrieval techniques.
+- Advanced semantic retrieval techniques.
 - Expanded analytics and reporting capabilities.
 
-## 👨‍💻 Author
+## Author
 
 **Priyanshu Pandey**
 
 B.Tech — Computer Science and Engineering  
-Artificial Intelligence and Machine Learning
+Specialization: Artificial Intelligence and Machine Learning
 
-- GitHub: [@Priyanshu-pandey1](https://github.com/Priyanshu-pandey1)
-- Linkedin: (http://linkedin.com/in/priyanshu-pandey-data/)
+- **GitHub:** [Priyanshu-pandey1](https://github.com/Priyanshu-pandey1)
+- **LinkedIn:** [Connect with me](https://www.linkedin.com/in/priyanshu-pandey-data/)
 
 ---
 
 <p align="center">
   <strong>◈ Arc Lite</strong><br/>
-  Built with a simple principle: Answer confidently. Never guess.
+  <sub>Answer confidently. Never guess.</sub>
 </p>
